@@ -22,22 +22,25 @@
 
 #include <iostream>
 #include "MiDi16/MicroDisplay16.hpp"
-#include "bus3200/Bus32.hpp"
+#include "Thex.hpp"
+#include "bob3000/Bob.hpp"
+#include "btp6000/Btp.hpp"
 
 
 int main() {
-    MiDi16::Window window( "MICRO-16", 512, 512 );
-    MiDi16::Surface screen( 128, 128 );
+    // Setup memory
+    Bob3k memory;
 
-    while ( window.IsRunning() ) {
-        window.PollEvents();
+    // Setup cpu
+    btp::BetterThanPico cpu;
+    cpu.Reset();
+    cpu.SetMemory( &memory );
 
-        screen.Clear();
+    memory.Write16( 0x0000, 0xBEEF );
+    memory.Write16( 0x0002, 0xDEAD );
 
-        screen.BlitFill( &window );
-
-        window.Flip();
-    }
+    std::cout << thex::Word << cpu.Test();
+    std::cout << thex::Word << cpu.Test();
 
     return 0;
 }

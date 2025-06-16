@@ -60,9 +60,7 @@ namespace btp {
         uint16_t SS, CS, DS;
 
         // Default constructor
-        BetterThanPico() {
-            Reset();
-        }
+        BetterThanPico() {}
 
         // Sets up the memory
         void SetMemory( Bob3k *memory ) {
@@ -73,6 +71,10 @@ namespace btp {
             // Set everything to zero
             A.value = B.value = X.value = 
             IP = SP = BP = SS = CS = DS = 0;
+        }
+
+        uint16_t Test() {
+            return Fetch16();
         }
 
         // Executes the fetched instruction
