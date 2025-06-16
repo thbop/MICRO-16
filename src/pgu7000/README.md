@@ -1,3 +1,7 @@
 # The Pixel Graphics Unit 7000
 
 Basically a GPU
+
+## TODO List:
+- SDL3 abstraction that creates a 128x128 screen and allows per-pixel drawing with a limited pallet/pallet swaping
+- The PGU will interface with this abstraction and receive draw calls from memory.
