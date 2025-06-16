@@ -21,21 +21,18 @@
 */
 
 #include <iostream>
-#include <iomanip>
 
-#include "bob3000/Bob.hpp"
+#include "SDL3/SDL.h"
+
 
 int main() {
-    Bob3k bob;
-    
-    // Test endianness
-    bob.Write16( 0x200, 0x000, 0xBEEF );
-    std::cout << thex::Byte << (int)bob.Read( 0x200, 0x000 ) << '\n';
-    std::cout << thex::Word << (int)bob.Read16( 0x200, 0x000 ) << '\n';
+    SDL_Init( SDL_INIT_VIDEO );
+    SDL_Window *window = SDL_CreateWindow( "SDL3 Test", 512, 512, 0 );
 
-    // Test if segments address properly
-    bob.Write( 0xFFF, 0x00F, 0xFF );
-    std::cout << thex::Byte << (int)bob.Read( 0xFF0, 0x0FF );
+    while ( 1 );
+
+    SDL_DestroyWindow( window );
+    SDL_Quit();
 
     return 0;
 }
