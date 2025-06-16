@@ -40,6 +40,18 @@ namespace btp {
         };
     };
 
+    // Flags
+    union Flag {
+        uint8_t value;
+        struct {
+            uint8_t
+                C : 1, // Carry flag
+                Z : 1, // Zero flag
+                V : 1, // Overflow flag
+                N : 1; // Negative flag
+        };
+    };
+
     // CPU class
     class BetterThanPico {
     public:

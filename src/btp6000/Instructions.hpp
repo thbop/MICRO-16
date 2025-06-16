@@ -60,6 +60,17 @@ enum Instructions {
     INS_TSSB    = 0x5A, // B = SS
     INS_TCSB    = 0x5B, // B = CS
     INS_TDSB    = 0x5D, // B = DS
+
+    // Control flow
+    INS_CMP     = 0xC0, // Compare A with B
+    INS_JE      = 0xC1, // Jump equal,         if ZF == 0
+    INS_JNE     = 0xC2, // Jump not equal,     if ZF == 1
+    INS_JG      = 0xC3, // Jump greater,       if CF == 1
+    INS_JL      = 0xC4, // Jump lesser,        if CF == 0
+    INS_JGE     = 0xC5, // Jump greater equal, if NF == 1
+    INS_JLE     = 0xC6, // Jump lesser equal,  if NF == 0
+    INS_SJMP    = 0xC7, // Short jump,         sets IP
+    INS_LJMP    = 0xC8, // Long jump,          sets CS:IP
 };
 
 #endif
