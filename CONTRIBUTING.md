@@ -57,5 +57,10 @@ Lastly, here are some other notes:
 ## Security
 Since C/C++ are not memory-safe, do not use unsafe functions like: `gets`, `scanf`, `sprintf`, `system`, etc. In other words, when working with buffers, ensure that an overflow is impossible. Try to avoid using heap-allocated memory and always free/delete it.
 
+## Git
+Create a branch and develop within it. Do whatever you want, but when it is time to merge ensure that your code complies with the above standards and functions properly. Avoid committing to the main branch (like I am right now).
+
 ## Building
 The current codebase was written on Windows 11. For Windows, I use [w64devkit](https://github.com/skeeto/w64devkit/releases) as my main compiler suite.
+
+TODO: More instructions
