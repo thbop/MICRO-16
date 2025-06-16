@@ -23,6 +23,7 @@
 #ifndef BOB_HPP
 #define BOB_HPP
 
+
 #include "stdint.h"
 
 #define BOB3K_SIZE 0x10000
@@ -35,57 +36,31 @@ public:
     Bob3k() {}
 
     // Getter
-    // Similar to x86 memory segmentation:
-    //     0xFFF segments
-    //     Each segment is 0xFFF bytes wide
-    //     Segments are separated by 0x10 bytes
-    //
-    // For example:
-    //     FFF:00F = FFFF
-    //     FF0:0FF = FFFF
-    //     FFF:FFF = 0FEF
-    uint8_t Read( uint16_t segment, uint16_t offset ) const {
-        return buffer[CalculateIndex( segment, offset )];
+    uint8_t Read( uint16_t address ) const {
+        return buffer[address];
     }
 
     // Returns a word
-    uint16_t Read16( uint16_t segment, uint16_t offset ) const {
-        return *(uint16_t*)( buffer + CalculateIndex( segment, offset ) );
+    uint16_t Read16( uint16_t address ) const {
+        return *(uint16_t*)( buffer + address );
     }
 
     // Setter
-    void Write( uint16_t segment, uint16_t offset, uint8_t value ) {
-        buffer[CalculateIndex( segment, offset )] = value;
+    void Write( uint16_t address, uint8_t value ) {
+        buffer[address] = value;
     }
 
     // Writes a word
-    void Write16( uint16_t segment, uint16_t offset, uint16_t value ) {
-        *(uint16_t*)( buffer + CalculateIndex( segment, offset ) ) = value;
+    void Write16( uint16_t address, uint16_t value ) {
+        *(uint16_t*)( buffer + address ) = value;
     }
 
 private:
     uint8_t buffer[BOB3K_SIZE];
 
-    uint16_t CalculateIndex( uint16_t segment, uint16_t offset ) const {
-        return ( segment << 4 ) + offset;
-    }
 };
 
-// Thbop Hex Printer
-// Quick little namespace for returning printable streams of bytes and words
-namespace thex {
-    // Byte
-    std::ostream& Byte( std::ostream &os ) {
-        return os << std::uppercase << std::hex << std::setw( 2 )
-            << std::setfill('0');
-    }
 
-    // Word
-    std::ostream& Word( std::ostream &os ) {
-        return os << std::uppercase << std::hex << std::setw( 4 )
-            << std::setfill('0');
-    }
-}
 
 
 #endif

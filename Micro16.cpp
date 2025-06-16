@@ -28,19 +28,19 @@ int main() {
     MiDi16::Window window( "MICRO-16", 512, 512 );
     MiDi16::Surface screen( 128, 128 );
 
-    while ( window.IsRunning() ) {
-        window.PollEvents();
+    // while ( window.IsRunning() ) {
+    //     window.PollEvents();
 
-        screen.Clear();
+    //     screen.Clear();
 
-        for ( int j = 0; j < 10; j++ )
-            for ( int i = 0; i < 10; i++ )
-                screen.Set( i + 50, j + 50, { 255, 0, 0, 255 } );
+    //     for ( int j = 0; j < 10; j++ )
+    //         for ( int i = 0; i < 10; i++ )
+    //             screen.Set( i + 50, j + 50, { 255, 0, 0, 255 } );
 
-        screen.BlitFill( &window );
+    //     screen.BlitFill( &window );
 
-        window.Flip();
-    }
+    //     window.Flip();
+    // }
 
     return 0;
 }
