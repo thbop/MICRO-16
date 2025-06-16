@@ -21,18 +21,26 @@
 */
 
 #include <iostream>
-
-#include "SDL3/SDL.h"
+#include "MiDi16/MicroDisplay16.hpp"
 
 
 int main() {
-    SDL_Init( SDL_INIT_VIDEO );
-    SDL_Window *window = SDL_CreateWindow( "SDL3 Test", 512, 512, 0 );
+    MiDi16::Window window( "MICRO-16", 512, 512 );
+    MiDi16::Surface screen( 128, 128 );
 
-    while ( 1 );
+    while ( window.IsRunning() ) {
+        window.PollEvents();
 
-    SDL_DestroyWindow( window );
-    SDL_Quit();
+        screen.Clear();
+
+        for ( int j = 0; j < 10; j++ )
+            for ( int i = 0; i < 10; i++ )
+                screen.Set( i + 50, j + 50, { 255, 0, 0, 255 } );
+
+        screen.BlitFill( &window );
+
+        window.Flip();
+    }
 
     return 0;
 }
