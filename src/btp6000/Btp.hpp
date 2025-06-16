@@ -29,6 +29,9 @@
 
 // The Better Than Pico 6000 namespace
 namespace btp {
+    #include "Instructions.hpp"
+
+
     // General purpose register
     union Register {
         uint16_t value;
@@ -43,9 +46,12 @@ namespace btp {
         // General purpose registers
         //     Accumulator
         //     Base register
+        Register A, B;
+
+        // Index registers
         //     X-index register
-        //     Memory register
-        Register A, B, X;
+        //     Y-pointer register
+        uint16_t X, Y;
 
         // Pointer registers
         //     Instruction pointer
@@ -69,15 +75,11 @@ namespace btp {
 
         void Reset() {
             // Set everything to zero
-            A.value = B.value = X.value = 
+            A.value = B.value = X = Y = 
             IP = SP = BP = SS = CS = DS = 0;
         }
 
-        uint16_t Test() {
-            return Fetch16();
-        }
-
-        // Executes the fetched instruction
+        // Executes one instruction
         void Execute();
 
     private:

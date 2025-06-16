@@ -36,11 +36,6 @@ int main() {
     cpu.Reset();
     cpu.SetMemory( &memory );
 
-    memory.Write16( 0x0000, 0xBEEF );
-    memory.Write16( 0x0002, 0xDEAD );
-
-    std::cout << thex::Word << cpu.Test();
-    std::cout << thex::Word << cpu.Test();
 
     return 0;
 }
