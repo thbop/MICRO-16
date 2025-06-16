@@ -48,7 +48,8 @@ namespace btp {
                 C : 1, // Carry flag
                 Z : 1, // Zero flag
                 V : 1, // Overflow flag
-                N : 1; // Negative flag
+                N : 1, // Negative flag
+                I : 1; // Interrupt flag
         };
     };
 

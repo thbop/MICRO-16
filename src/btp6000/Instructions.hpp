@@ -55,11 +55,13 @@ enum Instructions {
     INS_POPB    = 0x57, // Pop Y
     INS_ENTER   = 0x58, // Enter stack frame ( push bp, bp = sp )
     INS_LEAVE   = 0x59, // Leave stack frame ( pop bp )
+    INS_CALL    = 0x5A, // Call a function (push IP and short jump to address)
+    INS_RET     = 0x5B, // Return from a function ( pop IP )
 
     // Misc transfers
-    INS_TSSB    = 0x5A, // B = SS
-    INS_TCSB    = 0x5B, // B = CS
-    INS_TDSB    = 0x5D, // B = DS
+    INS_TSSB    = 0x5C, // B = SS
+    INS_TCSB    = 0x5D, // B = CS
+    INS_TDSB    = 0x5E, // B = DS
 
     // Control flow
     INS_CMP     = 0xC0, // Compare A with B
@@ -69,8 +71,15 @@ enum Instructions {
     INS_JL      = 0xC4, // Jump lesser,        if CF == 0
     INS_JGE     = 0xC5, // Jump greater equal, if NF == 1
     INS_JLE     = 0xC6, // Jump lesser equal,  if NF == 0
-    INS_SJMP    = 0xC7, // Short jump,         sets IP
+    INS_JMP     = 0xC7, // Short jump,         sets IP
     INS_LJMP    = 0xC8, // Long jump,          sets CS:IP
+
+    // Interrupts
+    INS_INT     = 0x00, // Interrupt 
+                        //     push flags and IP, then reference the
+                        //     interrupt jump table, and jump to the interrupt
+                        //     handler
+    INS_RTI     = 0x01, // Return from interrupt (pop IP and flags)
 };
 
 #endif
