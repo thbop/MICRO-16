@@ -21,21 +21,26 @@
 */
 
 #include <iostream>
-#include <iomanip>
+#include "MiDi16/MicroDisplay16.hpp"
 
-#include "bob3000/Bob.hpp"
 
 int main() {
-    Bob3k bob;
-    
-    // Test endianness
-    bob.Write16( 0x200, 0x000, 0xBEEF );
-    std::cout << thex::Byte << (int)bob.Read( 0x200, 0x000 ) << '\n';
-    std::cout << thex::Word << (int)bob.Read16( 0x200, 0x000 ) << '\n';
+    MiDi16::Window window( "MICRO-16", 512, 512 );
+    MiDi16::Surface screen( 128, 128 );
 
-    // Test if segments address properly
-    bob.Write( 0xFFF, 0x00F, 0xFF );
-    std::cout << thex::Byte << (int)bob.Read( 0xFF0, 0x0FF );
+    while ( window.IsRunning() ) {
+        window.PollEvents();
+
+        screen.Clear();
+
+        for ( int j = 0; j < 10; j++ )
+            for ( int i = 0; i < 10; i++ )
+                screen.Set( i + 50, j + 50, { 255, 0, 0, 255 } );
+
+        screen.BlitFill( &window );
+
+        window.Flip();
+    }
 
     return 0;
 }
