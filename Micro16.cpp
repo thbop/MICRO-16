@@ -21,9 +21,21 @@
 */
 
 #include <iostream>
+#include <iomanip>
+
+#include "bob3000/Bob.hpp"
 
 int main() {
-    std::cout << "Hello World!\n";
+    Bob3k bob;
+    
+    // Test endianness
+    bob.Write16( 0x200, 0x000, 0xBEEF );
+    std::cout << thex::Byte << (int)bob.Read( 0x200, 0x000 ) << '\n';
+    std::cout << thex::Word << (int)bob.Read16( 0x200, 0x000 ) << '\n';
+
+    // Test if segments address properly
+    bob.Write( 0xFFF, 0x00F, 0xFF );
+    std::cout << thex::Byte << (int)bob.Read( 0xFF0, 0x0FF );
 
     return 0;
 }

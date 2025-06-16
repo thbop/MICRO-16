@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -g -Wall -fdiagnostics-color=always
+CFLAGS = -g -Wall -fdiagnostics-color=always -Isrc
 
 all: micro16
 
