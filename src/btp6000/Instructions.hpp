@@ -24,11 +24,11 @@ enum Instructions {
     INS_TADS    = 0xAE, // DS = A
 
     // LDB - Load Base
-    INS_LDB_IM  = 0xB0, // Immediate
-    INS_LDB_SO  = 0xB1, // Stack offset [SS:BP+X]
-    INS_LDB_SPO = 0xB2, // Stack pointer offset [[SS:BP+X]+Y]
-    INS_LDB_DO  = 0xB3, // Data offset [DS:X]
-    INS_LDB_DPO = 0xB4, // Data pointer offset [[DS:X]+Y]
+    INS_LDB_IM  = 0xB0, // B = Im
+    INS_LDB_SO  = 0xB1, // B = [SS:BP+X]
+    INS_LDB_SPO = 0xB2, // B = [[SS:BP+X]+Y]
+    INS_LDB_DO  = 0xB3, // B = [DS:X]
+    INS_LDB_DPO = 0xB4, // B = [[DS:X]+Y]
 
     // STB - Store Base
     INS_STB_SO  = 0xB5, // [SS:BP+X]     = B
@@ -43,6 +43,23 @@ enum Instructions {
     INS_TBSS    = 0xBC, // SS = B
     INS_TBCS    = 0xBD, // CS = B
     INS_TBDS    = 0xBE, // DS = B
+
+    // Stack operations
+    INS_PUSHA   = 0x50, // Push A (not all)
+    INS_POPA    = 0x51, // Pop A (not all)
+    INS_PUSHB   = 0x52, // Push B
+    INS_POPB    = 0x53, // Pop B
+    INS_PUSHB   = 0x54, // Push X
+    INS_POPB    = 0x55, // Pop X
+    INS_PUSHB   = 0x56, // Push Y
+    INS_POPB    = 0x57, // Pop Y
+    INS_ENTER   = 0x58, // Enter stack frame ( push bp, bp = sp )
+    INS_LEAVE   = 0x59, // Leave stack frame ( pop bp )
+
+    // Misc transfers
+    INS_TSSB    = 0x5A, // B = SS
+    INS_TCSB    = 0x5B, // B = CS
+    INS_TDSB    = 0x5D, // B = DS
 };
 
 #endif
