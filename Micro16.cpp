@@ -21,26 +21,31 @@
 */
 
 #include <iostream>
+#include "stdio.h"
 #include "MiDi16/MicroDisplay16.hpp"
+#include "bob3000/Bob.hpp"
+#include "btp6000/Btp.hpp"
 
 
 int main() {
-    MiDi16::Window window( "MICRO-16", 512, 512 );
-    MiDi16::Surface screen( 128, 128 );
+    // Setup memory
+    Bob3k memory;
 
-    while ( window.IsRunning() ) {
-        window.PollEvents();
+    // Setup cpu
+    btp::BetterThanPico cpu;
+    cpu.Reset();
+    cpu.SetMemory( &memory );
 
-        screen.Clear();
+    memory.Write( 0x0000, btp::INS_LDA_IM );
+    memory.Write16( 0x0001, 0x000A );
 
-        for ( int j = 0; j < 10; j++ )
-            for ( int i = 0; i < 10; i++ )
-                screen.Set( i + 50, j + 50, { 255, 0, 0, 255 } );
+    memory.Write( 0x0003, btp::INS_TAB );
 
-        screen.BlitFill( &window );
+    for ( int i = 0; i < 2; i++ )
+        cpu.Execute();
 
-        window.Flip();
-    }
+    printf( "%02X\n", cpu.B.value );
+
 
     return 0;
 }
