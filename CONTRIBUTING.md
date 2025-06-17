@@ -5,7 +5,6 @@ Thanks for considering to contribute to this project. This document lays out a f
 ## Style
 Variables are in camel case, while types and functions are in pascal case. Enums and definitions are in uppercase snake case. Here are a few examples:
 ```c++
-
 // Documentation
 enum {
     COOL_THING,
@@ -41,9 +40,9 @@ int coolVariableX = 1;
 int coolVariableY = 5;
 CoolType variable = { 0, 1 };
 CoolLongType longVariable = {
-    .property = "Cheese",     // Comments
-    .position = variable,     // should be
-    .counter = 45,            // spaced like so
+    .property = "Cheese", // Comments
+    .position = variable, // should be
+    .counter = 45,        // spaced like so
 };
 ```
 
