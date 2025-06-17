@@ -25,9 +25,11 @@
 
 #include "stdint.h"
 
-int main( int argc, char **args ) {
+#include "settings.hpp"
 
-    std::cout << "Hello World Assembler!\n";
+int main( int argc, char **args ) {
+    Settings settings;
+    settings.Parse( argc, args );
 
     return 0;
 }
