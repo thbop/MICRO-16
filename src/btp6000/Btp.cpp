@@ -24,5 +24,27 @@
 
 // Executes one instruction
 void btp::BetterThanPico::Execute() {
-    
+    uint8_t instruction = Fetch();
+    switch ( instruction ) {
+        // LDA
+        case INS_LDA_IM:  A.value = LoadImmediate();                    break;
+        case INS_LDA_SO:  A.value = LoadOffset( SS, BP + X );           break;
+        case INS_LDA_SPO: A.value = LoadPointerOffset( SS, BP + X, Y ); break;
+        case INS_LDA_DO:  A.value = LoadOffset( DS, X );                break;
+        case INS_LDA_DPO: A.value = LoadPointerOffset( DS, X, Y );      break;
+
+        // STA
+        case INS_STA_SO:  StoreOffset( SS, BP + X, A.value );           break;
+        case INS_STA_SPO: StorePointerOffset( SS, BP + X, Y, A.value ); break;
+        case INS_STA_DO:  StoreOffset( DS, X, A.value );                break;
+        case INS_STA_DPO: StorePointerOffset( DS, X, Y, A.value );      break;
+
+        // TA-X
+        case INS_TAB:     B.value = A.value;                            break;
+        case INS_TAX:     X = A.value;                                  break;
+        case INS_TAY:     Y = A.value;                                  break;
+        case INS_TASS:    SS = A.value;                                 break;
+        case INS_TACS:    CS = A.value;                                 break;
+        case INS_TADS:    DS = A.value;                                 break;
+    }
 }

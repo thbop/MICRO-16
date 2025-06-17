@@ -41,7 +41,7 @@ namespace btp {
     };
 
     // Flags
-    union Flag {
+    union Flags {
         uint8_t value;
         struct {
             uint8_t
@@ -78,6 +78,9 @@ namespace btp {
         //     Data segment
         uint16_t SS, CS, DS;
 
+        // Flags
+        Flags flags;
+
         // Default constructor
         BetterThanPico() {}
 
@@ -89,7 +92,8 @@ namespace btp {
         void Reset() {
             // Set everything to zero
             A.value = B.value = X = Y = 
-            IP = SP = BP = SS = CS = DS = 0;
+            IP = SP = BP = SS = CS = DS = 
+            flags.value = 0;
         }
 
         // Executes one instruction
@@ -144,6 +148,61 @@ namespace btp {
             uint16_t value = Read16( CS, IP );
             IP += 2;
             return value;
+        }
+
+        // Most AB register operations will run this generic function
+        void GenericFlagSet( uint16_t value ) {
+            flags.Z = ( value == 0 );
+            flags.N = ( value >> 15 );
+        }
+
+        // Sets flags appropriately for a CMP instruction
+        void CompareFlagSet( uint16_t a, uint16_t b ) {
+            flags.Z = a == b;
+            flags.C = a > b;
+            flags.N = a >= b;
+        }
+
+        // Load Immediate value
+        uint16_t LoadImmediate() {
+            uint16_t value = Fetch16();
+            GenericFlagSet( value );
+            return value;
+        }
+
+        // Load offset value
+        uint16_t LoadOffset( uint16_t segment, uint16_t offset ) {
+            uint16_t value = Read16( segment, offset );
+            GenericFlagSet( value );
+            return value;
+        }
+
+        // Load pointer offset value
+        uint16_t LoadPointerOffset(
+            uint16_t segment,
+            uint16_t offset,
+            uint16_t pointer
+        ) {
+            uint16_t address = Read16( segment, offset );
+            uint16_t value = Read16( SS, address + pointer );
+            GenericFlagSet( value );
+            return value;
+        }
+
+        // Store offset value in memory
+        void StoreOffset( uint16_t segment, uint16_t offset, uint16_t value ) {
+            Write16( segment, offset, value );
+        }
+
+        // Store pointer offset value in memory
+        void StorePointerOffset(
+            uint16_t segment,
+            uint16_t offset,
+            uint16_t pointer,
+            uint16_t value
+        ) {
+            uint16_t address = Read16( segment, offset );
+            Write16( SS, address + pointer, value );
         }
     };
 

@@ -21,8 +21,8 @@
 */
 
 #include <iostream>
+#include "stdio.h"
 #include "MiDi16/MicroDisplay16.hpp"
-#include "Thex.hpp"
 #include "bob3000/Bob.hpp"
 #include "btp6000/Btp.hpp"
 
@@ -35,6 +35,16 @@ int main() {
     btp::BetterThanPico cpu;
     cpu.Reset();
     cpu.SetMemory( &memory );
+
+    memory.Write( 0x0000, btp::INS_LDA_IM );
+    memory.Write16( 0x0001, 0x000A );
+
+    memory.Write( 0x0003, btp::INS_TAB );
+
+    for ( int i = 0; i < 2; i++ )
+        cpu.Execute();
+
+    printf( "%02X\n", cpu.B.value );
 
 
     return 0;
