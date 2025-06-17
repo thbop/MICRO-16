@@ -1,5 +1,5 @@
 /*
-* Copyright © 2025 Micro-16 Team
+* Copyright © 2025 Thbop
 * 
 * Permission is hereby granted, free of charge, to any person obtaining a copy of
 * this software and associated documentation files (the “Software”), to deal in
@@ -20,24 +20,24 @@
 * SOFTWARE.
 */
 
-#include <iostream>
+#ifndef STRINGEXTRA_HPP
+#define STRINGEXTRA_HPP
+
 #include <string>
+#include <algorithm>
 
-#include "stdint.h"
+// String Extra namespace
+namespace stringextra {
 
+// Strips off leading and trailing whitespaces/newlines
+std::string strip( const std::string &str ) {
+    auto start = std::find_if_not( str.begin(), str.end(), ::isspace );
+    auto end = std::find_if_not( str.rbegin(), str.rend(), ::isspace ).base();
 
-#include "settings.hpp"
-#include "lexer.hpp"
-
-int main( int argc, char **args ) {
-    // Create the settings object and parse arguments
-    Settings settings;
-    settings.Parse( argc, args );
-
-    // Lex the file
-    lex::Lexer lexer( &settings );
-    lexer.Evaluate();
-
-
-    return 0;
+    return ( start < end ) ? std::string( start, end ) : std::string();
 }
+
+
+}
+
+#endif
