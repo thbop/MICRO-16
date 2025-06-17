@@ -38,10 +38,10 @@ const char settingsHelpMessage[] =
 
 // Parses and stores assembler settings from command line arguments
 class Settings {
+public:
     std::string inputFile;
     std::string outputFile;
 
-public:
     Settings() {}
 
     // Parses the arguments
@@ -91,9 +91,6 @@ bool Settings::Parse( int argc, char **args ) {
     int wait = 0;
 
     for ( int i = 0; i < argc; i++ ) {
-        if ( !SetNextArgument( args[i], nextArgument ) )
-            return false;
-        
         if ( wait > 0 ) {
             switch ( nextArgument ) {
                 case NEXT_ARG_INPUT:
@@ -106,8 +103,11 @@ bool Settings::Parse( int argc, char **args ) {
                     break;
             }
         }
-        else
+        else {
+            if ( !SetNextArgument( args[i], nextArgument ) )
+                return false;
             wait++;
+        }
     }
 
     return true;

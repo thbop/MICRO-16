@@ -20,21 +20,38 @@
 * SOFTWARE.
 */
 
-#include <iostream>
+#ifndef LEXER_HPP
+#define LEXER_HPP
+
 #include <string>
-
-#include "stdint.h"
-
+#include <fstream>
 #include "settings.hpp"
-#include "lexer.hpp"
 
-int main( int argc, char **args ) {
-    // Create the settings object and parse arguments
-    Settings settings;
-    settings.Parse( argc, args );
+// Takes raw assembly code and makes it managable for the parser
+class Lexer {
+public:
+    // Default constructor
+    Lexer() {}
 
-    // Lex the file
-    Lexer lexer( &settings );
+    // Accept the settings and open the file for lexing
+    Lexer( Settings *settings ) {
+        file.open( settings->inputFile, std::ios::in );
 
-    return 0;
-}
+        if ( !file.is_open() ) {
+            std::cout << "File \"" << settings->inputFile << "\" either does "
+                "not exist or cannot be opened.\n";
+            error = true;
+        }
+    }
+
+    // Close the file
+    ~Lexer() {
+        file.close();
+    }
+
+private:
+    std::ofstream file;
+    bool error = false; // Prevent further action if an error has occured
+};
+
+#endif
