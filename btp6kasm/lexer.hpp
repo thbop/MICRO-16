@@ -192,9 +192,9 @@ public:
 
     // Free the master token
     ~Line() {
-        if ( tokenStack.size() != 1 )
+        if ( tokenStack.size() > 1 )
             std::cout << "DEBUG ERROR: Something failed with the token stack!\n";
-        else
+        else if ( tokenStack.size() == 1 )
             delete tokenStack.top();
     }
 

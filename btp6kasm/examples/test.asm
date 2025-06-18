@@ -2,3 +2,4 @@
 
 lda 12h
 tab
+ldy 32
