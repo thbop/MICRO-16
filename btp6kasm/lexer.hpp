@@ -96,6 +96,12 @@ public:
         return ok;
     };
 
+    // Debug print
+    virtual void Print() {
+        for ( auto it : subTokens )
+            it->Print();
+    }
+
     // Adds a subToken to the list
     void AddSubToken( Token *subToken ) {
         subTokens.push_back( subToken );
@@ -125,6 +131,12 @@ public:
         PrintError( "A number cannot be a validator!", lineNumber );
         return false;
     }
+
+    // Prints the number and its children
+    void Print() override {
+        std::cout << "\tNumber(" << value << ")\n";
+        Token::Print();
+    }
 };
 
 // String token class
@@ -143,6 +155,12 @@ public:
     bool Validate( int lineNumber ) override {
         PrintError( "A string cannot be a validator!", lineNumber );
         return false;
+    }
+
+    // Prints the string and its children
+    void Print() override {
+        std::cout << "\tString(" << value << ")\n";
+        Token::Print();
     }
 };
 
@@ -172,6 +190,12 @@ public:
 
         return true;
     }
+
+    // Prints the instruction and its children
+    void Print() override {
+        std::cout << "\tInstruction(" << value << ")\n";
+        Token::Print();
+    }
 };
 
 // LinkerDirective token class
@@ -194,6 +218,12 @@ public:
         }
 
         return true;
+    }
+
+    // Prints the linker directive and its children
+    void Print() override {
+        std::cout << "\tLinkerDirective(" << value << ")\n";
+        Token::Print();
     }
 };
 
@@ -219,7 +249,7 @@ public:
     }
 
     // Free the master token
-    ~Line() {
+    virtual ~Line() {
         if ( tokenStack.size() > 1 )
             std::cout << "DEBUG ERROR: Something failed with the token stack!\n";
         else if ( tokenStack.size() == 1 )
@@ -315,6 +345,8 @@ void Line::Lex() {
 // A container of Lines that defines a scope
 class Scope : public Line {
 public:
+    std::vector<Line*> lines; // or scopes
+
     // Constructors
     Scope() {}
     
@@ -332,9 +364,6 @@ public:
         // TODO: Probably something to test if the line is really a scope
         lines.push_back( line );
     }
-
-private:
-    std::vector<Line*> lines; // or scopes
 };
 
 // Takes raw assembly code and makes it managable for the parser

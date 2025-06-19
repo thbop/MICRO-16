@@ -1,5 +1,5 @@
 .org 0000h
 
-lda 12h
+lda 0012h
 tab
 ldy 32

@@ -28,6 +28,7 @@
 
 #include "settings.hpp"
 #include "lexer.hpp"
+#include "parser.hpp"
 
 int main( int argc, char **args ) {
     // Create the settings object and parse arguments
@@ -37,6 +38,10 @@ int main( int argc, char **args ) {
     // Lex the file
     lex::Lexer lexer( &settings );
     lexer.Evaluate();
+
+    // Parse the lex structure
+    parser::Parser parser( &lexer );
+    parser.PrintStructure();
 
 
     return 0;
