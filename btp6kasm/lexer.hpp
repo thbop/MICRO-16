@@ -68,6 +68,11 @@ std::vector<std::string> instructions = {
     "int", "rti",
 };
 
+// Linker directives
+std::vector<std::string> linkerDirectives = {
+    ".org",
+};
+
 
 // Abstract token class
 class Token {
@@ -169,6 +174,29 @@ public:
     }
 };
 
+// LinkerDirective token class
+class LinkerDirective : public Token {
+public:
+    std::string value;
+
+    // Constructors
+    LinkerDirective() {
+        type = LINKER_DIRECTIVE;
+    }
+    LinkerDirective( std::string &value ) : LinkerDirective() {
+        this->value = value;
+    }
+    // Instruction validator
+    bool Validate( int lineNumber ) override {
+        if ( subTokens.size() != 1 && subTokens[0]->type != NUMBER ) {
+            PrintError( "Linker directive has invalid argument!", lineNumber );
+            return false;
+        }
+
+        return true;
+    }
+};
+
 
 }
 
@@ -214,14 +242,25 @@ private:
 token::Token *Line::NewToken( std::string &rawToken ) {
     rawToken = stringextra::tolower( rawToken );
 
+    // Instruction ------------------------------------------------------------
     if (
         stringextra::find_str_in_list( rawToken, token::instructions ) != -1
     ) {
-        std::cout << "Instruction: " << rawToken << "\n";
+        // std::cout << "Instruction: " << rawToken << "\n";
         return new token::Instruction( rawToken );
     }
+    // Linker Directive -------------------------------------------------------
+    if (
+        stringextra::find_str_in_list(
+            rawToken, token::linkerDirectives
+        ) != -1
+    ) {
+        // std::cout << "Linker directive: " << rawToken << "\n";
+        return new token::LinkerDirective( rawToken );
+    }
+    // Number -----------------------------------------------------------------
     if ( stringextra::isint( rawToken ) ) {
-        std::cout << "Number: " << rawToken << "\n";
+        // std::cout << "Number: " << rawToken << "\n";
         return new token::Number( stringextra::str_to_int( rawToken ) );
     }
     std::cout << "Unknown: " << rawToken << "\n";
