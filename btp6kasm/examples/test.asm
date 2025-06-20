@@ -1,5 +1,5 @@
 .org 0000h
 
+ldb [bp+x]
 lda 0012h
-tab
-ldy 32
+ldx [bp+23]

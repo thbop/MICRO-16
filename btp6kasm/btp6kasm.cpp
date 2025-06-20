@@ -20,6 +20,8 @@
 * SOFTWARE.
 */
 
+#define DEBUG
+
 #include <iostream>
 #include <string>
 

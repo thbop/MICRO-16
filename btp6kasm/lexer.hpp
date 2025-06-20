@@ -43,8 +43,9 @@ namespace lex {
 namespace token {
 
 enum Type {
-    NUMBER,           // e.g. 45
     UNKNOWN,          // e.g. lda
+    NUMBER,           // e.g. 45
+    REGISTER,         // e.g. bp
     SEPARATOR,        // e.g. :
     STRING,           // e.g. Hello world!
     INSTRUCTION,      // e.g. lda
@@ -68,10 +69,20 @@ std::vector<std::string> instructions = {
     "int", "rti",
 };
 
+// Registers
+std::vector<std::string> registers = {
+    "a", "b", "x", "y",
+    "bp",
+    "ss", "cs", "ds",
+};
+
 // Linker directives
 std::vector<std::string> linkerDirectives = {
     ".org",
 };
+
+// Separators
+std::string separators = "+[]";
 
 
 // Abstract token class
@@ -96,11 +107,13 @@ public:
         return ok;
     };
 
+    #ifdef DEBUG
     // Debug print
-    virtual void Print() {
+    virtual void Print( int indent ) {
         for ( auto it : subTokens )
-            it->Print();
+            it->Print( indent + 1 );
     }
+    #endif
 
     // Adds a subToken to the list
     void AddSubToken( Token *subToken ) {
@@ -132,11 +145,14 @@ public:
         return false;
     }
 
+    #ifdef DEBUG
     // Prints the number and its children
-    void Print() override {
-        std::cout << "\tNumber(" << value << ")\n";
-        Token::Print();
+    void Print( int indent ) override {
+        for ( int i = 0; i < indent; i++ ) std::cout << "  ";
+        std::cout << "Number(" << value << ")\n";
+        Token::Print( indent + 1 );
     }
+    #endif
 };
 
 // String token class
@@ -157,11 +173,14 @@ public:
         return false;
     }
 
+    #ifdef DEBUG
     // Prints the string and its children
-    void Print() override {
-        std::cout << "\tString(" << value << ")\n";
-        Token::Print();
+    void Print( int indent ) override {
+        for ( int i = 0; i < indent; i++ ) std::cout << "  ";
+        std::cout << "String(" << value << ")\n";
+        Token::Print( indent + 1 );
     }
+    #endif
 };
 
 // Instruction token class
@@ -178,12 +197,15 @@ public:
     }
     // Instruction validator
     bool Validate( int lineNumber ) override {
-        // TEMP
         if ( subTokens.size() > 1 ) {
             PrintError( "Instruction has too many arguments!", lineNumber );
             return false;
         }
-        if ( subTokens.size() && subTokens[0]->type != NUMBER ) {
+        if (
+            subTokens.size() &&
+            !( subTokens[0]->type == NUMBER ||
+               subTokens[0]->type == SEPARATOR )
+        ) {
             PrintError( "Instruction has invalid argument!", lineNumber );
             return false;
         }
@@ -191,11 +213,78 @@ public:
         return true;
     }
 
+    #ifdef DEBUG
     // Prints the instruction and its children
-    void Print() override {
-        std::cout << "\tInstruction(" << value << ")\n";
-        Token::Print();
+    void Print( int indent ) override {
+        for ( int i = 0; i < indent; i++ ) std::cout << "  ";
+        std::cout << "Instruction(" << value << ")\n";
+        Token::Print( indent + 1 );
     }
+    #endif
+};
+
+// Register token class
+class Register : public Token {
+public:
+    std::string value;
+
+    // Constructors
+    Register() {
+        type = REGISTER;
+    }
+    Register( std::string &value ) : Register() {
+        this->value = value;
+    }
+    // A register cannot be a validator
+    bool Validate( int lineNumber ) override {
+        PrintError( "A register cannot be a validator!", lineNumber );
+        return false;
+    }
+
+    #ifdef DEBUG
+    // Prints the register and its children
+    void Print( int indent ) override {
+        for ( int i = 0; i < indent; i++ ) std::cout << "  ";
+        std::cout << "Register(" << value << ")\n";
+        Token::Print( indent + 1 );
+    }
+    #endif
+};
+
+// Separator token class
+class Separator : public Token {
+public:
+    char value;
+
+    // Constructors
+    Separator() {
+        type = SEPARATOR;
+    }
+    Separator( char value ) : Separator() {
+        this->value = value;
+    }
+    // Validate separator
+    bool Validate( int lineNumber ) override {
+        if ( value == '[' ) {
+            Separator *endBracket = dynamic_cast<Separator*>(
+                subTokens[subTokens.size() - 1]
+            );
+            if ( endBracket == nullptr || endBracket->value != ']' ) {
+                PrintError( "Missing end bracket!", lineNumber );
+                return false;
+            }
+        }
+        return true;
+    }
+
+    #ifdef DEBUG
+    // Prints the separator and its children
+    void Print( int indent ) override {
+        for ( int i = 0; i < indent; i++ ) std::cout << "  ";
+        std::cout << "Separator(" << value << ")\n";
+        Token::Print( indent + 1 );
+    }
+    #endif
 };
 
 // LinkerDirective token class
@@ -220,11 +309,14 @@ public:
         return true;
     }
 
+    #ifdef DEBUG
     // Prints the linker directive and its children
-    void Print() override {
-        std::cout << "\tLinkerDirective(" << value << ")\n";
-        Token::Print();
+    void Print( int indent ) override {
+        for ( int i = 0; i < indent; i++ ) std::cout << "  ";
+        std::cout << "LinkerDirective(" << value << ")\n";
+        Token::Print( indent + 1 );
     }
+    #endif
 };
 
 
@@ -251,7 +343,8 @@ public:
     // Free the master token
     virtual ~Line() {
         if ( tokenStack.size() > 1 )
-            std::cout << "DEBUG ERROR: Something failed with the token stack!\n";
+            std::cout << "DEBUG ERROR: Something failed with the token "
+                "stack! Missing bracket?\n";
         else if ( tokenStack.size() == 1 )
             delete tokenStack.top();
     }
@@ -265,7 +358,7 @@ private:
     token::Token *NewToken( std::string &rawToken );
 
     // Evaluates a raw token string and adds a new token
-    void AddToken( std::string &rawToken );
+    token::Token *AddToken( std::string &rawToken );
 };
 
 // Creates a new token given the raw token
@@ -275,24 +368,28 @@ token::Token *Line::NewToken( std::string &rawToken ) {
     // Instruction ------------------------------------------------------------
     if (
         stringextra::find_str_in_list( rawToken, token::instructions ) != -1
-    ) {
-        // std::cout << "Instruction: " << rawToken << "\n";
+    )
         return new token::Instruction( rawToken );
-    }
+    // Register ---------------------------------------------------------------
+    if ( stringextra::find_str_in_list( rawToken, token::registers ) != -1 )
+        return new token::Register( rawToken );
     // Linker Directive -------------------------------------------------------
     if (
         stringextra::find_str_in_list(
             rawToken, token::linkerDirectives
         ) != -1
-    ) {
-        // std::cout << "Linker directive: " << rawToken << "\n";
+    )
         return new token::LinkerDirective( rawToken );
-    }
     // Number -----------------------------------------------------------------
-    if ( stringextra::isint( rawToken ) ) {
-        // std::cout << "Number: " << rawToken << "\n";
+    if ( stringextra::isint( rawToken ) )
         return new token::Number( stringextra::str_to_int( rawToken ) );
-    }
+    // Separator --------------------------------------------------------------
+    if (
+        rawToken.size() == 1 &&
+        token::separators.find( rawToken[0] ) != std::string::npos
+    )
+        return new token::Separator( rawToken[0] );
+    
     std::cout << "Unknown: " << rawToken << "\n";
 
     // Unknown
@@ -300,32 +397,53 @@ token::Token *Line::NewToken( std::string &rawToken ) {
 }
 
 // Evaluates a raw token string and adds a new token
-void Line::AddToken( std::string &rawToken ) {
+token::Token *Line::AddToken( std::string &rawToken ) {
+    #ifdef DEBUG
     if ( rawToken == "" ) {
-        std::cout << "ERROR." << number << ": Empty raw token!";
-        return;
+        std::cout << "WARNING." << number << ": Empty raw token!\n";
+        return nullptr;
     }
-    
+    #endif
+
+    token::Token *token = NewToken( rawToken );
+
     // If the master token does not exist, create it
-    if ( tokenStack.size() == 0 )
-        tokenStack.push( NewToken( rawToken ) );
+    if ( tokenStack.size() == 0 ) 
+        tokenStack.push( token );
     // Otherwise, add to the master token
     else
-        tokenStack.top()->AddSubToken( NewToken( rawToken ) );
-        
+        tokenStack.top()->AddSubToken( token );
+    
+    return token;
 }
 
 // Lexes a line
 void Line::Lex() {
     std::string rawToken;
-    // static const std::string separators = "+[]";
 
     for ( int i = 0; i < (int)rawLine.size(); i++ ) {
         char character = rawLine[i];
+        // If space -----------------------------------------------------------
         if ( std::isspace( character ) ) {
             AddToken( rawToken );
             rawToken = std::string();
             continue;
+        // If separator -------------------------------------------------------
+        } else if (
+            token::separators.find( character ) != std::string::npos
+        ) {
+            AddToken( rawToken );
+            rawToken = std::string() + character;
+            token::Token *separatorToken =
+                AddToken( rawToken );
+
+            switch ( character ) {
+                case '[': tokenStack.push( separatorToken ); break;
+                case ']': tokenStack.pop(); break;
+            }
+            
+            rawToken = std::string();
+        // If end -------------------------------------------------------------
         } else if ( i == (int)rawLine.size() - 1 ) {
             rawToken += character;
             AddToken( rawToken );
@@ -337,7 +455,8 @@ void Line::Lex() {
     }
 
     if ( tokenStack.size() != 1 )
-        std::cout << "DEBUG ERROR: Something failed with the token stack!\n";
+        std::cout << "DEBUG ERROR: Something failed with the token stack! "
+            "Missing bracket?\n";
     else
         tokenStack.top()->Validate( number );
 }

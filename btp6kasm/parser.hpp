@@ -68,40 +68,45 @@ public:
     Parser() {}
     Parser( lex::Lexer *lexer ) : lexer( lexer ) {}
 
+    #ifdef DEBUG
     // Debug prints the lexed structure
     void PrintStructure() {
-        PrintScope( &lexer->scope );
+        PrintScope( &lexer->scope, 0 );
     }
+    #endif
 
 private:
     lex::Lexer *lexer;
 
+    #ifdef DEBUG
     // Prints a scope from the lexer
-    void PrintScope( lex::Scope *scope );
+    void PrintScope( lex::Scope *scope, int indent );
 
     // Prints a non-scope line from the lexer
-    void PrintLine( lex::Line *line );
+    void PrintLine( lex::Line *line, int indent );
+    #endif
 };
 
-
+#ifdef DEBUG
 // Prints a non-scope line from the lexer
-void Parser::PrintLine( lex::Line *line ) {
+void Parser::PrintLine( lex::Line *line, int indent ) {
     std::cout << "Line." << line->number << ":\n";
-    line->tokenStack.top()->Print();
+    line->tokenStack.top()->Print( indent );
 };
 
 // Prints a scope from the lexer
-void Parser::PrintScope( lex::Scope *scope ) {
+void Parser::PrintScope( lex::Scope *scope, int indent ) {
     for ( auto it : scope->lines ) {
         lex::Scope *childScope = dynamic_cast<lex::Scope*>(it);
         if ( childScope )
-            PrintScope( childScope );
+            PrintScope( childScope, indent + 1 );
         else {
-            PrintLine( it );
+            PrintLine( it, indent + 1 );
         }
     }
 }
 
 }
+#endif
 
 #endif
