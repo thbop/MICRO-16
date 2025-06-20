@@ -105,8 +105,8 @@ void Parser::PrintScope( lex::Scope *scope, int indent ) {
         }
     }
 }
+#endif
 
 }
-#endif
 
 #endif

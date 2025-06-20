@@ -398,12 +398,12 @@ token::Token *Line::NewToken( std::string &rawToken ) {
 
 // Evaluates a raw token string and adds a new token
 token::Token *Line::AddToken( std::string &rawToken ) {
-    #ifdef DEBUG
     if ( rawToken == "" ) {
+        #ifdef DEBUG
         std::cout << "WARNING." << number << ": Empty raw token!\n";
+        #endif
         return nullptr;
     }
-    #endif
 
     token::Token *token = NewToken( rawToken );
 
@@ -454,10 +454,12 @@ void Line::Lex() {
             rawToken += character;
     }
 
+    #ifdef DEBUG
     if ( tokenStack.size() != 1 )
         std::cout << "DEBUG ERROR: Something failed with the token stack! "
             "Missing bracket?\n";
     else
+    #endif
         tokenStack.top()->Validate( number );
 }
 
