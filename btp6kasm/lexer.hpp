@@ -509,7 +509,8 @@ public:
 
     // Close the file
     ~Lexer() {
-        file.close();
+        if ( file.is_open() )
+            file.close();
     }
 
 private:
@@ -527,6 +528,8 @@ void Lexer::Evaluate() {
         if ( !line.empty() )
             scope.Add( new Line( line, lineNumber ) );
     }
+
+    file.close();
 }
 
 }

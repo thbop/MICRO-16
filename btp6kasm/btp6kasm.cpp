@@ -42,8 +42,9 @@ int main( int argc, char **args ) {
     lexer.Evaluate();
 
     // Parse the lex structure
-    parser::Parser parser( &lexer );
+    parser::Parser parser( &lexer, &settings );
     parser.PrintStructure();
+    parser.Parse();
 
 
     return 0;
