@@ -45,17 +45,25 @@ namespace parser {
 namespace ins {
 
 enum AddressingMode {
-    NONE = 0b00000, // None
-    IM   = 0b00001, // Immediate
-    SO   = 0b00010, // Stack offset
-    SPO  = 0b00100, // Stack pointer offset
-    DO   = 0b01000, // Data offset
-    DPO  = 0b10000, // Data pointer offset
+    NONE  = 0b0000000000000, // None
+    IM    = 0b0000000000001, // Immediate
+    SO    = 0b0000000000010, // Stack offset
+    SOI   = 0b0000000000100, // Stack offset immediate
+    SPO   = 0b0000000001000, // Stack pointer offset
+    SPOI  = 0b0000000010000, // Stack pointer offset immediate
+    SPIO  = 0b0000000100000, // Stack pointer immediate offset
+    SPIOI = 0b0000001000000, // Stack pointer immediate offset immediate
+    DO    = 0b0000010000000, // Data offset
+    DOI   = 0b0000100000000, // Data offset immediate
+    DPO   = 0b0001000000000, // Data offset pointer
+    DPOI  = 0b0010000000000, // Data pointer offset immediate
+    DPIO  = 0b0100000000000, // Data pointer immediate offset
+    DPIOI = 0b1000000000000, // Data pointer immediate offset immediate
 };
 
 struct Info {
     uint8_t baseOpcode;
-    uint8_t addressingModes;
+    uint16_t addressingModes;
 };
 
 // Instructions
@@ -71,8 +79,8 @@ const std::unordered_map<std::string, Info> instructions = {
     { "tads", { INS_TADS, NONE } },
 
     // Base stuff
-    { "ldb",  { INS_LDB_IM, IM | SO | SPO | DO | DPO } },
-    { "stb",  { INS_STB_SO - 1, SO | SPO | DO | DPO } },
+    { "ldb",  { INS_LDB_IM, IM | SOI | SPIOI | DOI | DPIOI } },
+    { "stb",  { INS_STB_SO - 1, SOI | SPIOI | DOI | DPIOI } },
     { "tba",  { INS_TBA, NONE } },
     { "tbx",  { INS_TBX, NONE } },
     { "tby",  { INS_TBY, NONE } },
@@ -81,8 +89,8 @@ const std::unordered_map<std::string, Info> instructions = {
     { "tbds", { INS_TBDS, NONE } },
 
     // X-index stuff
-    { "ldx",  { INS_LDX_IM, IM | SO | SPO | DO | DPO } },
-    { "stx",  { INS_STX_SO - 1, SO | SPO | DO | DPO } },
+    { "ldx",  { INS_LDX_IM, IM | SOI | SPOI | DOI | DPOI } },
+    { "stx",  { INS_STX_SO - 1, SOI | SPOI | DOI | DPOI } },
     { "txa",  { INS_TXA, NONE } },
     { "txb",  { INS_TXB, NONE } },
     { "txy",  { INS_TXY, NONE } },
@@ -91,8 +99,8 @@ const std::unordered_map<std::string, Info> instructions = {
     { "txds", { INS_TXDS, NONE } },
 
     // Y-pointer stuff
-    { "ldy",  { INS_LDY_IM, IM | SO | SPO | DO | DPO } },
-    { "sty",  { INS_STY_SO - 1, SO | SPO | DO | DPO } },
+    { "ldy",  { INS_LDY_IM, IM | SO | SPIO | DO | DPIO } },
+    { "sty",  { INS_STY_SO - 1, SO | SPIO | DO | DPIO } },
     { "tya",  { INS_TYA, NONE } },
     { "tyb",  { INS_TYB, NONE } },
     { "tyx",  { INS_TYX, NONE } },
