@@ -47,10 +47,10 @@ enum Instructions {
 
     // LDB - Load Base
     INS_LDB_IM  = 0xB0, // B = Im
-    INS_LDB_SO  = 0xB1, // B = [SS:BP+X]
-    INS_LDB_SPO = 0xB2, // B = [[SS:BP+X]+Y]
-    INS_LDB_DO  = 0xB3, // B = [DS:X]
-    INS_LDB_DPO = 0xB4, // B = [[DS:X]+Y]
+    INS_LDB_SO  = 0xB1, // B = [SS:BP+x] (x = immediate)
+    INS_LDB_SPO = 0xB2, // B = [[SS:BP+x]+y] (y = immediate)
+    INS_LDB_DO  = 0xB3, // B = [DS:x]
+    INS_LDB_DPO = 0xB4, // B = [[DS:x]+y]
 
     // STB - Store Base
     INS_STB_SO  = 0xB5, // [SS:BP+X]     = B
