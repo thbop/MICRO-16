@@ -1,4 +1,4 @@
-.org 0000h
+.org 6512h
 
 ldb [bp+x]
 lda 0012h

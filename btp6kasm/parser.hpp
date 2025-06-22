@@ -23,7 +23,8 @@
 #ifndef PARSER_HPP
 #define PARSER_HPP
 
-#define PARSER_OBJECT_METADATA_END 0xFF
+#define PARSER_OBJECT_METADATA_END          0xFF
+#define PARSER_OBJECT_METADATA_ENTRY_LENGTH 3
 
 
 #include <vector>
@@ -32,6 +33,7 @@
 
 #include "settings.hpp"
 #include "lexer.hpp"
+using namespace lex;
 
 // Parser namespace
 namespace parser {
@@ -99,20 +101,39 @@ public:
     // Empty constructor
     Chunk() {}
 
+    // Construct the correct bytes for the particular chunk type
+    virtual void Build() {}
+
 };
+
 
 // Basic information about the whole file for the linker
 // Also includes external references
 class Header : public Chunk {
 public:
+    uint16_t origin; // .org
 
+    Header() {
+        type = HEADER;
+    }
+
+    // Build the header
+    void Build() override {
+        Append( origin );
+    }
 };
 
 // Class to manage the generated object
 class Object : public Bytes {
 public:
-    // Empty constructor
-    Object() {}
+    std::vector<Chunk*> chunks;
+    Header *header;
+
+    // Setup basic object
+    Object() {
+        header = new Header();
+        chunks.push_back( header );
+    }
 
     // Adds a chunk to the internal list
     void AddChunk( Chunk *chunk ) {
@@ -122,8 +143,6 @@ public:
     // Construct the chunks into the buffer with the correct metadata
     void Build();
 
-private:
-    std::vector<Chunk*> chunks;
 };
 
 // Construct the chunks into the buffer with the correct metadata
@@ -132,7 +151,7 @@ void Object::Build() {
 
     // Each metadata entry is 3 bytes + the 1 end byte
     // This is kinda like a very basic file system to guide the linker
-    uint16_t pointer = chunks.size() * 3 + 1;
+    uint16_t pointer = chunks.size() * PARSER_OBJECT_METADATA_ENTRY_LENGTH + 1;
     for ( Chunk *chunk : chunks ) {
         Append( (uint8_t)chunk->type );
         Append( pointer );
@@ -143,6 +162,7 @@ void Object::Build() {
 
     // Actually add the data
     for ( Chunk *chunk : chunks ) {
+        chunk->Build();
         Append( chunk );
     }
 }
@@ -152,7 +172,7 @@ class Parser {
 public:
     // Constructors
     Parser() {}
-    Parser( lex::Lexer *lexer, Settings *settings ) : lexer( lexer ) {
+    Parser( Lexer *lexer, Settings *settings ) : lexer( lexer ) {
         file.open( settings->outputFile, std::ios::binary );
         if ( !file.is_open() )
             std::cout << "File \"" << settings->outputFile << "\" either does "
@@ -177,30 +197,39 @@ public:
     #endif
 
 private:
-    lex::Lexer *lexer;
+    Lexer *lexer;
     Object output;
     std::ofstream file;
 
     #ifdef DEBUG
     // Prints a scope from the lexer
-    void PrintScope( lex::Scope *scope, int indent );
+    void PrintScope( Scope *scope, int indent );
 
     // Prints a non-scope line from the lexer
-    void PrintLine( lex::Line *line, int indent );
+    void PrintLine( Line *line, int indent );
     #endif
+
+    // Parses a scope
+    void ParseScope( Scope *scope );
+
+    // Parses a line
+    void ParseLine( Line *line );
+
+    // Parses a linker directive
+    void ParseLinkerDirective( token::LinkerDirective *token );
 };
 
 #ifdef DEBUG
 // Prints a non-scope line from the lexer
-void Parser::PrintLine( lex::Line *line, int indent ) {
+void Parser::PrintLine( Line *line, int indent ) {
     std::cout << "Line." << line->number << ":\n";
     line->tokenStack.top()->Print( indent );
 };
 
 // Prints a scope from the lexer
-void Parser::PrintScope( lex::Scope *scope, int indent ) {
+void Parser::PrintScope( Scope *scope, int indent ) {
     for ( auto it : scope->lines ) {
-        lex::Scope *childScope = dynamic_cast<lex::Scope*>(it);
+        Scope *childScope = dynamic_cast<Scope*>(it);
         if ( childScope )
             PrintScope( childScope, indent + 1 );
         else {
@@ -210,17 +239,38 @@ void Parser::PrintScope( lex::Scope *scope, int indent ) {
 }
 #endif
 
+// Parses a linker directive
+void Parser::ParseLinkerDirective( token::LinkerDirective *token ) {
+    if ( token->value == ".org" ) {
+        token::Number *number = (token::Number*)token->subTokens[0];
+        output.header->origin = number->value;
+    }
+}
+
+// Parses a line
+void Parser::ParseLine( Line *line ) {
+    token::Token *token = line->tokenStack.top();
+    switch ( token->type ) {
+        case token::LINKER_DIRECTIVE:
+            ParseLinkerDirective( (token::LinkerDirective*)token );
+            break;
+    }
+}
+
+// Parses a scope
+void Parser::ParseScope( Scope *scope ) {
+    for ( auto it : scope->lines ) {
+        Scope *subScope = dynamic_cast<Scope*>( it );
+        if ( subScope != nullptr )
+            ParseScope( subScope );
+        else
+            ParseLine( it );
+    }
+}
+
 // Parse the lex structure and output the file
 void Parser::Parse() {
-    // Hardcoded chunk creation
-    uint8_t data[] = "Hello World!";
-    uint8_t data2[] = "Second chunk!";
-    Chunk chunk, chunk2;
-    chunk.Append( data, sizeof(data) );
-    chunk2.Append( data2, sizeof(data2) );
-
-    output.AddChunk( &chunk );
-    output.AddChunk( &chunk2 );
+    ParseScope( &lexer->scope );
     output.Build();
 
     file.write( (const char*)output.buffer(), output.size() );
