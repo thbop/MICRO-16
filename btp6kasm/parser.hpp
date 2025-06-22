@@ -55,8 +55,10 @@ public:
 
     // Appends a string of bytes to the buffer
     void Append( uint8_t *bytes, size_t size ) {
-        for ( size_t i = 0; i < size; i++ )
-            Append( bytes[i] );
+        size_t oldSize = data.size();
+        data.resize( oldSize + size );
+
+        memcpy( data.data() + oldSize, bytes, size );
     }
 
     // Appends a Bytes object to the buffer
