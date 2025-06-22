@@ -28,8 +28,11 @@
 
 
 #include <vector>
+#include <unordered_map>
 
 #include "stdint.h"
+
+#include "../src/btp6000/Instructions.hpp"
 
 #include "settings.hpp"
 #include "lexer.hpp"
@@ -37,6 +40,69 @@ using namespace lex;
 
 // Parser namespace
 namespace parser {
+
+// Instruction namespace
+namespace ins {
+
+enum AddressingMode {
+    NONE = 0b00000, // None
+    IM   = 0b00001, // Immediate
+    SO   = 0b00010, // Stack offset
+    SPO  = 0b00100, // Stack pointer offset
+    DO   = 0b01000, // Data offset
+    DPO  = 0b10000, // Data pointer offset
+};
+
+struct Info {
+    uint8_t baseOpcode;
+    uint8_t addressingModes;
+};
+
+// Instructions
+const std::unordered_map<std::string, Info> instructions = {
+    // Accumulator stuff
+    { "lda",  { INS_LDA_IM, IM | SO | SPO | DO | DPO } },
+    { "sta",  { INS_STA_SO - 1, SO | SPO | DO | DPO } },
+    { "tab",  { INS_TAB, NONE } },
+    { "tax",  { INS_TAX, NONE } },
+    { "tay",  { INS_TAY, NONE } },
+    { "tass", { INS_TASS, NONE } },
+    { "tacs", { INS_TACS, NONE } },
+    { "tads", { INS_TADS, NONE } },
+
+    // Base stuff
+    { "ldb",  { INS_LDB_IM, IM | SO | SPO | DO | DPO } },
+    { "stb",  { INS_STB_SO - 1, SO | SPO | DO | DPO } },
+    { "tba",  { INS_TBA, NONE } },
+    { "tbx",  { INS_TBX, NONE } },
+    { "tby",  { INS_TBY, NONE } },
+    { "tbss", { INS_TBSS, NONE } },
+    { "tbcs", { INS_TBCS, NONE } },
+    { "tbds", { INS_TBDS, NONE } },
+
+    // X-index stuff
+    { "ldx",  { INS_LDX_IM, IM | SO | SPO | DO | DPO } },
+    { "stx",  { INS_STX_SO - 1, SO | SPO | DO | DPO } },
+    { "txa",  { INS_TXA, NONE } },
+    { "txb",  { INS_TXB, NONE } },
+    { "txy",  { INS_TXY, NONE } },
+    { "txss", { INS_TXSS, NONE } },
+    { "txcs", { INS_TXCS, NONE } },
+    { "txds", { INS_TXDS, NONE } },
+
+    // Y-pointer stuff
+    { "ldy",  { INS_LDY_IM, IM | SO | SPO | DO | DPO } },
+    { "sty",  { INS_STY_SO - 1, SO | SPO | DO | DPO } },
+    { "tya",  { INS_TYA, NONE } },
+    { "tyb",  { INS_TYB, NONE } },
+    { "tyx",  { INS_TYX, NONE } },
+    { "tyss", { INS_TYSS, NONE } },
+    { "tycs", { INS_TYCS, NONE } },
+    { "tyds", { INS_TYDS, NONE } },
+
+};
+
+}
 
 // An inefficient but simple byte storage class
 class Bytes {
@@ -121,6 +187,20 @@ public:
     void Build() override {
         Append( origin );
     }
+};
+
+// Instruction chunk
+class Code : public Chunk {
+public:
+    Code() {
+        type = CODE;
+    }
+
+    // Adds a label
+    void AddLabel() {}
+
+private:
+    std::unordered_map<std::string, uint16_t> labels;
 };
 
 // Class to manage the generated object
