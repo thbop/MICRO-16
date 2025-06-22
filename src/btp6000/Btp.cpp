@@ -46,5 +46,26 @@ void btp::BetterThanPico::Execute() {
         case INS_TASS:    SS = A.value;                                 break;
         case INS_TACS:    CS = A.value;                                 break;
         case INS_TADS:    DS = A.value;                                 break;
+
+        // LDB
+        case INS_LDB_IM:  B.value = LoadImmediate();                    break;
+        case INS_LDB_SO:  B.value = LoadOffsetIm( SS, BP );             break;
+        case INS_LDB_SPO: B.value = LoadPointerImOffsetIm( SS, BP, 0 ); break;
+        case INS_LDB_DO:  B.value = LoadOffsetIm( DS, 0 );              break;
+        case INS_LDB_DPO: B.value = LoadPointerImOffsetIm( DS, 0, 0 );  break;
+
+        // STB
+        case INS_STB_SO:  StoreOffsetIm( SS, BP, B.value );             break;
+        case INS_STB_SPO: StorePointerImOffsetIm( SS, BP, 0, B.value ); break;
+        case INS_STB_DO:  StoreOffsetIm( DS, 0, B.value );              break;
+        case INS_STB_DPO: StorePointerImOffsetIm( DS, 0, 0, B.value );  break;
+
+        // TB-X
+        case INS_TBA:     A.value = B.value;                            break;
+        case INS_TBX:     X = B.value;                                  break;
+        case INS_TBY:     Y = B.value;                                  break;
+        case INS_TBSS:    SS = B.value;                                 break;
+        case INS_TBCS:    CS = B.value;                                 break;
+        case INS_TBDS:    DS = B.value;                                 break;
     }
 }

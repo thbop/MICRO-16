@@ -177,6 +177,11 @@ namespace btp {
             return value;
         }
 
+        // Load offset with immediate
+        uint16_t LoadOffsetIm( uint16_t segment, uint16_t offset ) {
+            return LoadOffset( segment, offset + Fetch() );
+        }
+
         // Load pointer offset value
         uint16_t LoadPointerOffset(
             uint16_t segment,
@@ -189,9 +194,49 @@ namespace btp {
             return value;
         }
 
+        // Load pointer offset value with an immediate offset
+        uint16_t LoadPointerOffsetIm(
+            uint16_t segment,
+            uint16_t offset,
+            uint16_t pointer
+        ) {
+            return LoadPointerOffset( segment, offset + Fetch(), pointer );
+        }
+
+        // Load pointer offset value with an immediate pointer
+        uint16_t LoadPointerImOffset(
+            uint16_t segment,
+            uint16_t offset,
+            uint16_t pointer
+        ) {
+            return LoadPointerOffset( segment, offset, pointer + Fetch16() );
+        }
+
+        // Load pointer offset value with an immediate offset and pointer
+        uint16_t LoadPointerImOffsetIm(
+            uint16_t segment,
+            uint16_t offset,
+            uint16_t pointer
+        ) {
+            return LoadPointerOffset(
+                segment,
+                offset + Fetch(),
+                pointer + Fetch16()
+            );
+        }
+
         // Store offset value in memory
         void StoreOffset( uint16_t segment, uint16_t offset, uint16_t value ) {
             Write16( segment, offset, value );
+        }
+
+        // Store offset value in memory with an immediate offset
+        void StoreOffsetIm(
+            uint16_t segment,
+            uint16_t offset,
+            uint16_t value
+        ) {
+            StoreOffset( segment, offset + Fetch(), value );
         }
 
         // Store pointer offset value in memory
@@ -203,6 +248,42 @@ namespace btp {
         ) {
             uint16_t address = Read16( segment, offset );
             Write16( SS, address + pointer, value );
+        }
+
+        // Store pointer offset value in memory with an immediate offset
+        void StorePointerOffsetIm(
+            uint16_t segment,
+            uint16_t offset,
+            uint16_t pointer,
+            uint16_t value
+        ) {
+            StorePointerOffset( segment, offset + Fetch(), pointer, value );
+        }
+
+        // Store pointer offset value in memory with an immediate pointer
+        void StorePointerImOffset(
+            uint16_t segment,
+            uint16_t offset,
+            uint16_t pointer,
+            uint16_t value
+        ) {
+            StorePointerOffset( segment, offset, pointer + Fetch16(), value );
+        }
+
+        // Store pointer offset value in memory with an immediate offset and
+        // pointer
+        void StorePointerImOffsetIm(
+            uint16_t segment,
+            uint16_t offset,
+            uint16_t pointer,
+            uint16_t value
+        ) {
+            StorePointerOffset(
+                segment,
+                offset + Fetch(),
+                pointer + Fetch16(),
+                value
+            );
         }
     };
 
