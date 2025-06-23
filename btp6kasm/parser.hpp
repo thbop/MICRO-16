@@ -167,7 +167,7 @@ uint16_t GetAddressingMode( token::Instruction *token ) {
     return -1;
 }
 
-// Most instructions' addressing modes follow this same pattern
+// Most instructions' addressing modes follow this offset pattern
 int GetAddressingModeOffset( uint16_t mode ) {
     switch ( mode ) {
         case NONE:
@@ -186,6 +186,37 @@ int GetAddressingModeOffset( uint16_t mode ) {
         case DPIOI: return 4;
     }
     return 0;
+}
+
+// Gets an immediate offset [bp+x] or [x]
+// Assumes token is valid
+// TODO: Make this less bad
+uint8_t GetImOffset( token::Instruction *token ) {
+    if ( token->subTokens[0]->subTokens[0]->type == token::NUMBER ) {
+        return ( (token::Number*)token->subTokens[0]->subTokens[0] )->value;
+    }
+    return ( (token::Number*)token->subTokens[0]->subTokens[2] )->value;
+}
+
+// Gets an immediate offset [[bp+x]+y] or [[x]+y]
+// Assumes token is valid
+// TODO: Make this less bad
+uint8_t GetPointerOffsetIm( token::Instruction *token ) {
+    if (
+        token->subTokens[0]->subTokens[0]->subTokens[0]->type == token::NUMBER
+    ) {
+        return ( (token::Number*)token->subTokens[0]->
+                    subTokens[0]->subTokens[0] )->value;
+    }
+    return ( (token::Number*)token->subTokens[0]->
+                subTokens[0]->subTokens[2] )->value;
+}
+
+// Gets an immediate pointer [[bp+x]+y] or [[x]+y]
+// Assumes token is valid
+// TODO: Make this less bad
+uint16_t GetPointerImOffset( token::Instruction *token ) {
+    return ( (token::Number*)token->subTokens[0]->subTokens[2] )->value;
 }
 
 }
@@ -443,8 +474,12 @@ void Parser::ParseCode( token::Instruction *token ) {
         // Get and check addressing mode
         uint16_t addressingMode = ins::GetAddressingMode( token );
         if (
+            // Don't raise errors if there's no addressing mode
             info.addressingModes != ins::NONE &&
-            !( addressingMode & info.addressingModes )
+            // Check if the instruction supports the provided addressing mode
+            ( !( addressingMode & info.addressingModes ) ||
+            // Also check if the provided addressing mode is invalid
+            addressingMode == -1 )
         ) {
             std::cout << "ERROR: Invalid addressing mode for instruction \""
                 << token->value << "\"\n";
@@ -459,6 +494,12 @@ void Parser::ParseCode( token::Instruction *token ) {
         output.code->Append( opcode );
 
         // Add immediate values
+        if ( ( addressingMode & ( ins::SOI | ins::DOI ) ) )
+            output.code->Append( ins::GetImOffset( token ) );
+        else if ( ( addressingMode & ( ins::SPOI | ins::DPOI ) ) )
+            output.code->Append( ins::GetPointerOffsetIm( token ) );
+        if ( ( addressingMode & ( ins::SPIO | ins::DPIO ) ) )
+            output.code->Append( ins::GetPointerImOffset( token ) );
     }
 }
 
