@@ -41,6 +41,7 @@ namespace MiDi16 {
     // Window class to manage SDL3 windows
     class Window {
     public:
+        Window() {}
         // Basic constructor
         Window( const char *title, int width, int height ) {
             // Initialize SDL
@@ -108,6 +109,8 @@ namespace MiDi16 {
     class Surface {
     public:
         uint32_t *pixels;
+
+        Surface() {}
 
         // Allocates the pixel data buffer
         Surface( int width, int height ) : width( width ), height( height ) {
