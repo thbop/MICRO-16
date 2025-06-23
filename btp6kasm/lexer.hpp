@@ -107,6 +107,20 @@ public:
         return ok;
     };
 
+    // Checks if a token and its subtokens are equal in type and in value (if
+    // specified)
+    virtual bool Equal( Token *other, bool inValue=true ) {
+        bool equal = true;
+        if ( subTokens.size() != other->subTokens.size() )
+            return false;
+        
+        for ( int i = 0; i < (int)subTokens.size(); i++ ) {
+            equal &= subTokens[i]->Equal( other->subTokens[i], inValue );
+        }
+
+        return equal;
+    }
+
     #ifdef DEBUG
     // Debug print
     virtual void Print( int indent ) {
@@ -145,6 +159,22 @@ public:
         return false;
     }
 
+    // Checks if a token and its subtokens are equal in type and in value (if
+    // specified)
+    bool Equal( Token *other, bool inValue=true ) override {
+        bool equal = Token::Equal( other, inValue );
+        if ( !equal ) return false;
+        
+        equal &= ( type == other->type );
+        if ( !equal ) return false;
+        
+        // We'll just pretend this doesn't exist
+        // if ( inValue )
+        //     equal &= ( value == ( (Number*)other )->value );
+
+        return equal;
+    }
+
     #ifdef DEBUG
     // Prints the number and its children
     void Print( int indent ) override {
@@ -171,6 +201,21 @@ public:
     bool Validate( int lineNumber ) override {
         PrintError( "A string cannot be a validator!", lineNumber );
         return false;
+    }
+
+    // Checks if a token and its subtokens are equal in type and in value (if
+    // specified)
+    bool Equal( Token *other, bool inValue=true ) override {
+        bool equal = Token::Equal( other, inValue );
+        if ( !equal ) return false;
+        
+        equal &= ( type == other->type );
+        if ( !equal ) return false;
+        
+        if ( inValue )
+            equal &= ( value == ( (String*)other )->value );
+
+        return equal;
     }
 
     #ifdef DEBUG
@@ -213,6 +258,21 @@ public:
         return true;
     }
 
+    // Checks if a token and its subtokens are equal in type and in value (if
+    // specified)
+    bool Equal( Token *other, bool inValue=true ) override {
+        bool equal = Token::Equal( other, inValue );
+        if ( !equal ) return false;
+        
+        equal &= ( type == other->type );
+        if ( !equal ) return false;
+        
+        if ( inValue )
+            equal &= ( value == ( (Instruction*)other )->value );
+
+        return equal;
+    }
+
     #ifdef DEBUG
     // Prints the instruction and its children
     void Print( int indent ) override {
@@ -239,6 +299,21 @@ public:
     bool Validate( int lineNumber ) override {
         PrintError( "A register cannot be a validator!", lineNumber );
         return false;
+    }
+
+    // Checks if a token and its subtokens are equal in type and in value (if
+    // specified)
+    bool Equal( Token *other, bool inValue=true ) override {
+        bool equal = Token::Equal( other, inValue );
+        if ( !equal ) return false;
+        
+        equal &= ( type == other->type );
+        if ( !equal ) return false;
+        
+        if ( inValue )
+            equal &= ( value == ( (Register*)other )->value );
+
+        return equal;
     }
 
     #ifdef DEBUG
@@ -277,6 +352,21 @@ public:
         return true;
     }
 
+    // Checks if a token and its subtokens are equal in type and in value (if
+    // specified)
+    bool Equal( Token *other, bool inValue=true ) override {
+        bool equal = Token::Equal( other, inValue );
+        if ( !equal ) return false;
+        
+        equal &= ( type == other->type );
+        if ( !equal ) return false;
+        
+        if ( inValue )
+            equal &= ( value == ( (Separator*)other )->value );
+
+        return equal;
+    }
+
     #ifdef DEBUG
     // Prints the separator and its children
     void Print( int indent ) override {
@@ -309,6 +399,21 @@ public:
         return true;
     }
 
+    // Checks if a token and its subtokens are equal in type and in value (if
+    // specified)
+    bool Equal( Token *other, bool inValue=true ) override {
+        bool equal = Token::Equal( other, inValue );
+        if ( !equal ) return false;
+        
+        equal &= ( type == other->type );
+        if ( !equal ) return false;
+        
+        if ( inValue )
+            equal &= ( value == ( (LinkerDirective*)other )->value );
+
+        return equal;
+    }
+
     #ifdef DEBUG
     // Prints the linker directive and its children
     void Print( int indent ) override {
@@ -333,7 +438,7 @@ public:
     Line() {}
 
     // Constructor that lexes automatically
-    Line( std::string &line, int lineNumber ) {
+    Line( const std::string &line, int lineNumber ) {
         rawLine = line;
         number = lineNumber;
 
@@ -399,9 +504,6 @@ token::Token *Line::NewToken( std::string &rawToken ) {
 // Evaluates a raw token string and adds a new token
 token::Token *Line::AddToken( std::string &rawToken ) {
     if ( rawToken == "" ) {
-        #ifdef DEBUG
-        std::cout << "WARNING." << number << ": Empty raw token!\n";
-        #endif
         return nullptr;
     }
 

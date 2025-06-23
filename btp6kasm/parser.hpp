@@ -45,21 +45,35 @@ namespace parser {
 namespace ins {
 
 enum AddressingMode {
-    NONE  = 0b0000000000000, // None
-    IM    = 0b0000000000001, // Immediate
-    SO    = 0b0000000000010, // Stack offset
-    SOI   = 0b0000000000100, // Stack offset immediate
-    SPO   = 0b0000000001000, // Stack pointer offset
-    SPOI  = 0b0000000010000, // Stack pointer offset immediate
-    SPIO  = 0b0000000100000, // Stack pointer immediate offset
-    SPIOI = 0b0000001000000, // Stack pointer immediate offset immediate
-    DO    = 0b0000010000000, // Data offset
-    DOI   = 0b0000100000000, // Data offset immediate
-    DPO   = 0b0001000000000, // Data offset pointer
-    DPOI  = 0b0010000000000, // Data pointer offset immediate
-    DPIO  = 0b0100000000000, // Data pointer immediate offset
-    DPIOI = 0b1000000000000, // Data pointer immediate offset immediate
+    NONE  = 0b00000000000, // None
+    IM    = 0b00000000001, // Immediate
+    SO    = 0b00000000010, // Stack offset
+    SOI   = 0b00000000100, // Stack offset immediate
+    SPO   = 0b00000001000, // Stack pointer offset
+    SPOI  = 0b00000010000, // Stack pointer offset immediate
+    SPIO  = 0b00000100000, // Stack pointer immediate offset
+    DO    = 0b00001000000, // Data offset
+    DOI   = 0b00010000000, // Data offset immediate
+    DPO   = 0b00100000000, // Data offset pointer
+    DPOI  = 0b01000000000, // Data pointer offset immediate
+    DPIO  = 0b10000000000, // Data pointer immediate offset
+    SPIOI = SPOI | SPIO,   // Stack pointer immediate offset immediate
+    DPIOI = DPOI | DPIO,   // Data pointer immediate offset immediate
 };
+
+const Line
+    StackOffsetLine           ( "[bp+x]",       0 ),
+    StackOffsetImLine         ( "[bp+42]",      0 ),
+    StackPointerOffsetLine    ( "[[bp+x]+y]",   0 ),
+    StackPointerOffsetImLine  ( "[[bp+42]+y]",  0 ),
+    StackPointerImOffsetLine  ( "[[bp+x]+42]",  0 ),
+    StackPointerImOffsetImLine( "[[bp+42]+42]", 0 ),
+    DataOffsetLine            ( "[x]",          0 ),
+    DataOffsetImLine          ( "[42]",         0 ),
+    DataPointerOffsetLine     ( "[[x]+y]",      0 ),
+    DataPointerOffsetImLine   ( "[[42]+y]",     0 ),
+    DataPointerImOffsetLine   ( "[[x]+42]",     0 ),
+    DataPointerImOffsetImLine ( "[[42]+42]",    0 );
 
 struct Info {
     uint8_t baseOpcode;
@@ -110,9 +124,73 @@ const std::unordered_map<std::string, Info> instructions = {
 
 };
 
+// Returns the addressing mode of an instruction given its token
+uint16_t GetAddressingMode( token::Instruction *token ) {
+    if ( token->subTokens.size() == 0 )               // None
+        return NONE;
+    if ( token->subTokens.size() > 1 )                // Invalid
+        return -1;
+    if ( token->subTokens[0]->type == token::NUMBER ) // Immediate
+        return IM;
+    
+    // Bracket land
+    if ( token->subTokens[0]->type == token::SEPARATOR ) {
+        token::Separator *bracket = (token::Separator*)token->subTokens[0];
+
+        if ( bracket->Equal( StackOffsetLine.tokenStack.top() ) )
+            return SO;
+        if ( bracket->Equal( StackOffsetImLine.tokenStack.top() ) )
+            return SOI;
+        if ( bracket->Equal( StackPointerOffsetLine.tokenStack.top() ) )
+            return SPO;
+        if ( bracket->Equal( StackPointerOffsetImLine.tokenStack.top() ) )
+            return SPOI;
+        if ( bracket->Equal( StackPointerImOffsetLine.tokenStack.top() ) )
+            return SPIO;
+        if ( bracket->Equal( StackPointerImOffsetImLine.tokenStack.top() ) )
+            return SPIOI;
+        if ( bracket->Equal( DataOffsetLine.tokenStack.top() ) )
+            return DO;
+        if ( bracket->Equal( DataOffsetImLine.tokenStack.top() ) )
+            return DOI;
+        if ( bracket->Equal( DataPointerOffsetLine.tokenStack.top() ) )
+            return DPO;
+        if ( bracket->Equal( DataPointerOffsetImLine.tokenStack.top() ) )
+            return DPOI;
+        if ( bracket->Equal( DataPointerImOffsetLine.tokenStack.top() ) )
+            return DPIO;
+        if ( bracket->Equal( DataPointerImOffsetImLine.tokenStack.top() ) )
+            return DPIOI;
+    }
+    
+    // Nothing valid happened
+    return -1;
 }
 
-// An inefficient but simple byte storage class
+// Most instructions' addressing modes follow this same pattern
+int GetAddressingModeOffset( uint16_t mode ) {
+    switch ( mode ) {
+        case NONE:
+        case IM:    return 0;
+        case SO:
+        case SOI:   return 1;
+        case SPO:
+        case SPOI:
+        case SPIO:
+        case SPIOI: return 2;
+        case DO:
+        case DOI:   return 3;
+        case DPO:
+        case DPOI:
+        case DPIO:
+        case DPIOI: return 4;
+    }
+    return 0;
+}
+
+}
+
+// A byte storage class
 class Bytes {
 public:
     // Empty constructor
@@ -142,11 +220,6 @@ public:
         Append( (uint8_t*)bytes->buffer(), bytes->size() );
     }
 
-    // Empties the buffer
-    void Clear() {
-
-    }
-
     // Returns the raw byte buffer
     const uint8_t *buffer() const {
         return data.data();
@@ -174,6 +247,9 @@ public:
 
     // Empty constructor
     Chunk() {}
+
+    // Virtual destructor
+    virtual ~Chunk() = default;
 
     // Construct the correct bytes for the particular chunk type
     virtual void Build() {}
@@ -216,11 +292,21 @@ class Object : public Bytes {
 public:
     std::vector<Chunk*> chunks;
     Header *header;
+    Code *code;
 
     // Setup basic object
     Object() {
         header = new Header();
+        code   = new Code();
+
         chunks.push_back( header );
+        chunks.push_back( code );
+    }
+
+    // Free up chunks when we're done building them
+    ~Object() {
+        for ( auto chunk : chunks )
+            delete chunk;
     }
 
     // Adds a chunk to the internal list
@@ -235,22 +321,20 @@ public:
 
 // Construct the chunks into the buffer with the correct metadata
 void Object::Build() {
-    Clear();
-
     // Each metadata entry is 3 bytes + the 1 end byte
     // This is kinda like a very basic file system to guide the linker
     uint16_t pointer = chunks.size() * PARSER_OBJECT_METADATA_ENTRY_LENGTH + 1;
     for ( Chunk *chunk : chunks ) {
         Append( (uint8_t)chunk->type );
         Append( pointer );
-        
+
+        chunk->Build();
         pointer += (uint16_t)chunk->size(); // Increment to the next chunk
     }
     Append( (uint8_t)PARSER_OBJECT_METADATA_END );
 
     // Actually add the data
     for ( Chunk *chunk : chunks ) {
-        chunk->Build();
         Append( chunk );
     }
 }
@@ -258,6 +342,8 @@ void Object::Build() {
 // Parses the lexed data and generated the object
 class Parser {
 public:
+    bool error = false;
+
     // Constructors
     Parser() {}
     Parser( Lexer *lexer, Settings *settings ) : lexer( lexer ) {
@@ -305,6 +391,9 @@ private:
 
     // Parses a linker directive
     void ParseLinkerDirective( token::LinkerDirective *token );
+
+    // Parses line of code
+    void ParseCode( token::Instruction *token );
 };
 
 #ifdef DEBUG
@@ -329,39 +418,89 @@ void Parser::PrintScope( Scope *scope, int indent ) {
 
 // Parses a linker directive
 void Parser::ParseLinkerDirective( token::LinkerDirective *token ) {
-    if ( token->value == ".org" ) {
-        token::Number *number = (token::Number*)token->subTokens[0];
-        output.header->origin = number->value;
+    if ( !error ) {
+        if ( token->value == ".org" ) {
+            token::Number *number = (token::Number*)token->subTokens[0];
+            output.header->origin = number->value;
+        }
+    }
+}
+
+// Parses line of code
+void Parser::ParseCode( token::Instruction *token ) {
+    if ( !error ) {
+        // Get instruction info
+        ins::Info info;
+        try {
+            info = ins::instructions.at( token->value );
+        } catch (...) {
+            std::cout << "ERROR: Unknown instruction \""
+                << token->value << "\"\n";
+            error = true;
+            return;
+        }
+
+        // Get and check addressing mode
+        uint16_t addressingMode = ins::GetAddressingMode( token );
+        if (
+            info.addressingModes != ins::NONE &&
+            !( addressingMode & info.addressingModes )
+        ) {
+            std::cout << "ERROR: Invalid addressing mode for instruction \""
+                << token->value << "\"\n";
+            error = true;
+            return;
+        }
+
+        // Get opcode
+        uint8_t opcode =
+            info.baseOpcode + ins::GetAddressingModeOffset( addressingMode );
+        
+        output.code->Append( opcode );
+
+        // Add immediate values
     }
 }
 
 // Parses a line
 void Parser::ParseLine( Line *line ) {
-    token::Token *token = line->tokenStack.top();
-    switch ( token->type ) {
-        case token::LINKER_DIRECTIVE:
-            ParseLinkerDirective( (token::LinkerDirective*)token );
-            break;
+    if ( !error ) {
+        token::Token *token = line->tokenStack.top();
+        switch ( token->type ) {
+            case token::LINKER_DIRECTIVE:
+                ParseLinkerDirective( (token::LinkerDirective*)token );
+                break;
+            case token::INSTRUCTION:
+                ParseCode( (token::Instruction*)token );
+                break;
+        }
     }
 }
 
 // Parses a scope
 void Parser::ParseScope( Scope *scope ) {
-    for ( auto it : scope->lines ) {
-        Scope *subScope = dynamic_cast<Scope*>( it );
-        if ( subScope != nullptr )
-            ParseScope( subScope );
-        else
-            ParseLine( it );
+    if ( !error ) {
+        for ( auto it : scope->lines ) {
+            Scope *subScope = dynamic_cast<Scope*>( it );
+            if ( subScope != nullptr )
+                ParseScope( subScope );
+            else
+                ParseLine( it );
+        }
     }
 }
 
 // Parse the lex structure and output the file
 void Parser::Parse() {
     ParseScope( &lexer->scope );
-    output.Build();
+    if ( !error ) {
+        output.Build();
 
-    file.write( (const char*)output.buffer(), output.size() );
+        file.write( (const char*)output.buffer(), output.size() );
+    }
+    else
+        std::cout << "\nExited on error.\n\n";
+
     file.close();
 }
 

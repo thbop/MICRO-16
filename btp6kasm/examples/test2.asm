@@ -5,7 +5,7 @@ main:
     ldy 12
 .side_quest:
     ldx [bp+12]
-    ldb [bp+x]
+    ldb [bp+54]
     lda [[x]y]
 
 main2:
