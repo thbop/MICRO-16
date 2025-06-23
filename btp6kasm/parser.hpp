@@ -188,6 +188,13 @@ int GetAddressingModeOffset( uint16_t mode ) {
     return 0;
 }
 
+// Gets an immediate value x
+// Assumes token is valid
+// TODO: Make this less bad
+uint8_t GetIm( token::Instruction *token ) {
+    return ( (token::Number*)token->subTokens[0] )->value;
+}
+
 // Gets an immediate offset [bp+x] or [x]
 // Assumes token is valid
 // TODO: Make this less bad
@@ -494,6 +501,8 @@ void Parser::ParseCode( token::Instruction *token ) {
         output.code->Append( opcode );
 
         // Add immediate values
+        if ( ( addressingMode & ins::IM ) )
+            output.code->Append( ins::GetIm( token ) );
         if ( ( addressingMode & ( ins::SOI | ins::DOI ) ) )
             output.code->Append( ins::GetImOffset( token ) );
         else if ( ( addressingMode & ( ins::SPOI | ins::DPOI ) ) )
