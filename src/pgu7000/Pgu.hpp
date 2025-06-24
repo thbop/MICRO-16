@@ -31,6 +31,32 @@
 // PGU namespace
 namespace pgu {
 
+constexpr int
+    // Spritesheet stuff
+    SPRITE_WIDTH             = 8, // Sprites are square
+    SPRITE_SIZE              = 16, // Sprite size in bytes
+    SPRITESHEET_SPRITE_COUNT = ( 16 * 8 ), // 16x8 sprites
+
+    // Nametable stuff
+    NAMETABLE_WIDTH          = SCREEN_RESOLUTION / SPRITE_WIDTH,
+    NAMETABLE_ENTRY_COUNT    = NAMETABLE_WIDTH * NAMETABLE_WIDTH,
+    NAMETABLE_ENTRY_SIZE     = 2, // 2 bytes
+    NAMETABLE_SIZE           = NAMETABLE_ENTRY_SIZE * NAMETABLE_ENTRY_COUNT,
+
+    // Palette stuff
+    PALETTE_ENTRY_SIZE       = 4, // 4 colors
+    PALETTE_ENTRY_COUNT      = 16,
+    PALETTE_SIZE             = 1 + PALETTE_ENTRY_SIZE * PALETTE_ENTRY_COUNT,
+
+    // Memory locations
+    SPRITESHEET              = 0x3000,
+    NAMETABLE0               =
+        SPRITESHEET + SPRITESHEET_SPRITE_COUNT * SPRITE_SIZE,
+    NAMETABLE1               = NAMETABLE0 + NAMETABLE_SIZE,
+    PALETTE                  = NAMETABLE1 + NAMETABLE_SIZE;
+
+
+
 enum Colors {
     BLACK, GRAY, WHITE, PEACH,
     MAGENTA, PURPLE, RED, ORANGE,
@@ -51,7 +77,35 @@ public:
     // Sets the memory just like the CPU
     void SetMemory( Bob3k *memory ) {
         bob = memory;
+
+        // Hard coded sprite
+        bob->Write( SPRITESHEET + 0,  0b0000000 );
+        bob->Write( SPRITESHEET + 1,  0b0000000 );
+        bob->Write( SPRITESHEET + 2,  0b0100010 );
+        bob->Write( SPRITESHEET + 3,  0b0000000 );
+        bob->Write( SPRITESHEET + 4,  0b0000000 );
+        bob->Write( SPRITESHEET + 5,  0b0100010 );
+        bob->Write( SPRITESHEET + 6,  0b0111110 );
+        bob->Write( SPRITESHEET + 7,  0b0000000 );
+
+        bob->Write( SPRITESHEET + 8,  0b0000000 );
+        bob->Write( SPRITESHEET + 9,  0b0000000 );
+        bob->Write( SPRITESHEET + 10, 0b0000000 );
+        bob->Write( SPRITESHEET + 11, 0b0000000 );
+        bob->Write( SPRITESHEET + 12, 0b0000000 );
+        bob->Write( SPRITESHEET + 13, 0b0000000 );
+        bob->Write( SPRITESHEET + 14, 0b0000000 );
+        bob->Write( SPRITESHEET + 15, 0b0000000 );
+
+        // Hardcoded palette
+        bob->Write( PALETTE + 0, BLACK );
+
+        bob->Write( PALETTE + 2, WHITE );
     }
+
+    // Given sprite coordinates and a palette, renders a sprite at the given
+    // position
+    void RenderSprite( uint8_t sprite, uint8_t palette, int x, int y );
 
 private:
     MiDi16::Surface *screen;
@@ -59,10 +113,14 @@ private:
 
     // https://lospec.com/palette-list/anb16
     const MiDi16::Color colors[COLOR_COUNT] = {
-        0x0A080D00, 0x69759400, 0xDFE9F500, 0xF7AAA800,
-        0xD4689A00, 0x782C9600, 0xE8356200, 0xF2825C00,
-        0xFFC76E00, 0x88C44D00, 0x3F9E5900, 0x37346100,
-        0x4854A800, 0x7199D900, 0x9E525200, 0x4D253600,
+        { 0x0A, 0x08, 0x0D, 0xFF }, { 0x69, 0x75, 0x94, 0xFF },
+        { 0xDF, 0xE9, 0xF5, 0xFF }, { 0xF7, 0xAA, 0xA8, 0xFF },
+        { 0xD4, 0x68, 0x9A, 0xFF }, { 0x78, 0x2C, 0x96, 0xFF },
+        { 0xE8, 0x35, 0x62, 0xFF }, { 0xF2, 0x82, 0x5C, 0xFF },
+        { 0xFF, 0xC7, 0x6E, 0xFF }, { 0x88, 0xC4, 0x4D, 0xFF },
+        { 0x3F, 0x9E, 0x59, 0xFF }, { 0x37, 0x34, 0x61, 0xFF },
+        { 0x48, 0x54, 0xA8, 0xFF }, { 0x71, 0x99, 0xD9, 0xFF },
+        { 0x9E, 0x52, 0x52, 0xFF }, { 0x4D, 0x25, 0x36, 0xFF },
     };
 
     // Sets a color at a given position
@@ -70,6 +128,39 @@ private:
         screen->Set( x, y, colors[color] );
     }
 };
+
+
+// Given sprite coordinates and a palette, renders a sprite at the given
+// position
+void PixelGraphicsUnit::RenderSprite(
+    uint8_t sprite,
+    uint8_t palette,
+    int x, int y
+) {
+    uint16_t spriteAddress = SPRITESHEET + sprite * SPRITE_SIZE;
+    uint16_t paletteAddress = PALETTE + 1 + palette * PALETTE_ENTRY_SIZE;
+
+    for ( int j = 0; j < SPRITE_WIDTH; j++ ) {
+        uint16_t rowAddress = spriteAddress + j;
+        uint8_t lsb = bob->Read( rowAddress ); // Least significant bit
+        uint8_t msb = bob->Read( rowAddress + SPRITE_WIDTH );
+
+        // Iterate through the bits
+        for ( int i = SPRITE_WIDTH - 1; i > -1; i-- ) {
+            uint8_t paletteIndex = ( ( msb & 1 ) << 1 ) | ( lsb & 1 );
+            lsb >>= 1;
+            msb >>= 1;
+
+            uint8_t colorIndex;
+            if ( paletteIndex == 0 )
+                colorIndex = bob->Read( PALETTE );
+            else
+                colorIndex = bob->Read( paletteAddress + paletteIndex );
+
+            SetPixel( colorIndex, x + i, y + j );
+        }
+    }
+}
 
 }
 

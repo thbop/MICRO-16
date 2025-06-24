@@ -131,7 +131,7 @@ namespace MiDi16 {
 
         // Sets the color value at the specified pixel
         void Set( int x, int y, Color color ) {
-            *(Color*)( pixels + y * width + x ) = color;
+            *(Color*)( pixels + ( y * width ) + x ) = color;
         }
 
         // Blits the Surface to the window
@@ -161,7 +161,7 @@ namespace MiDi16 {
         if ( texture == NULL ) {
             texture = SDL_CreateTexture(
                 window->GetSDLRenderer(),
-                SDL_PIXELFORMAT_RGBA8888,
+                SDL_PIXELFORMAT_ABGR8888,
                 SDL_TEXTUREACCESS_STREAMING,
                 width, height
             );

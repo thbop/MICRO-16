@@ -21,15 +21,18 @@
 */
 
 #include <iostream>
+
 #include "stdio.h"
-#include "MiDi16/MicroDisplay16.hpp"
-#include "bob3000/Bob.hpp"
-#include "btp6000/Btp.hpp"
 
 #define TITLE             "Micro-16"
 #define SCREEN_RESOLUTION 128
 #define WINDOW_RATIO      4
 #define WINDOW_RESOLUTION ( SCREEN_RESOLUTION * WINDOW_RATIO )
+
+#include "MiDi16/MicroDisplay16.hpp"
+#include "bob3000/Bob.hpp"
+#include "btp6000/Btp.hpp"
+#include "pgu7000/Pgu.hpp"
 
 // Main class
 class Micro16 {
@@ -44,6 +47,10 @@ public:
         window =
             new MiDi16::Window( TITLE, WINDOW_RESOLUTION, WINDOW_RESOLUTION );
         screen = new MiDi16::Surface( SCREEN_RESOLUTION, SCREEN_RESOLUTION );
+
+        // GPU
+        gpu = new pgu::PixelGraphicsUnit( screen );
+        gpu->SetMemory( &memory );
     }
 
     // Destroy resources
@@ -64,6 +71,7 @@ public:
 private:
     Bob3k memory;
     btp::BetterThanPico cpu;
+    pgu::PixelGraphicsUnit *gpu;
 
     MiDi16::Window *window;
     MiDi16::Surface *screen;
@@ -77,7 +85,8 @@ void Micro16::Update() {
 
 // Draw loop
 void Micro16::Draw() {
-
+    gpu->RenderSprite( 0, 0, 10, 10 );
+    // screen->Set( 0, 0, { 255, 0, 255, 255 } );
 }
 
 // Main loop
