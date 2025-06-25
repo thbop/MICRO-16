@@ -21,31 +21,130 @@
 */
 
 #include <iostream>
+
 #include "stdio.h"
+
+#define TITLE             "Micro-16"
+#define SCREEN_RESOLUTION 128
+#define WINDOW_RATIO      4
+#define WINDOW_RESOLUTION ( SCREEN_RESOLUTION * WINDOW_RATIO )
+
+// Ignore development package
+// #define RUNTIME
+
 #include "MiDi16/MicroDisplay16.hpp"
 #include "bob3000/Bob.hpp"
 #include "btp6000/Btp.hpp"
+#include "pgu7000/Pgu.hpp"
+#include "cartlink/CartLink.hpp"
+
+// Main class
+class Micro16 {
+public:
+    // Initialize everything
+    Micro16() {
+        // CPU
+        cpu.Reset();
+        cpu.SetMemory( &memory );
+
+        // Display
+        window =
+            new MiDi16::Window( TITLE, WINDOW_RESOLUTION, WINDOW_RESOLUTION );
+        screen = new MiDi16::Surface( SCREEN_RESOLUTION, SCREEN_RESOLUTION );
+
+        // GPU
+        gpu = new pgu::PixelGraphicsUnit( screen );
+        gpu->SetMemory( &memory );
+
+        #ifndef RUNTIME
+        editor = new Editor( screen );
+        #endif
+    }
+
+    // Destroy resources
+    ~Micro16() {
+        delete screen;
+        delete window;
+        delete gpu;
+
+        #ifndef RUNTIME
+        delete editor;
+        #endif
+    }
+
+    // Update loop
+    void Update();
+
+    // Draw loop
+    void Draw();
+
+    // Main loop
+    void Run();
+
+private:
+    Bob3k memory;
+    btp::BetterThanPico cpu;
+    pgu::PixelGraphicsUnit *gpu;
+
+    MiDi16::Window *window;
+    MiDi16::Surface *screen;
+
+    #ifndef RUNTIME
+    Editor *editor;
+
+    enum State {
+        GAME,
+        EDITOR,
+    };
+    int state = EDITOR;
+    #endif
+};
+
+
+// Update loop
+void Micro16::Update() {
+
+}
+
+// Draw loop
+void Micro16::Draw() {
+    gpu->RenderSprite( 0, 0, 10, 10 );
+}
+
+// Main loop
+void Micro16::Run() {
+    while ( window->IsRunning() ) {
+        window->PollEvents();
+        #ifdef RUNTIME
+        Update();
+        #else
+        if ( window->IsKeyPressed( MiDi16::KEY_F5 ) )
+            state = !state;
+        switch ( state ) {
+            case GAME:   Update();         break;
+            case EDITOR: editor->Update(); break;
+        }
+        #endif
+
+        screen->Clear();
+        #ifdef RUNTIME
+        Draw();
+        #else
+        switch ( state ) {
+            case GAME:   Draw();         break;
+            case EDITOR: editor->Draw(); break;
+        }
+        #endif
+
+        screen->BlitFill( window );
+        window->Flip();
+    }
+}
 
 
 int main() {
-    // Setup memory
-    Bob3k memory;
-
-    // Setup cpu
-    btp::BetterThanPico cpu;
-    cpu.Reset();
-    cpu.SetMemory( &memory );
-
-    memory.Write( 0x0000, btp::INS_LDA_IM );
-    memory.Write16( 0x0001, 0x000A );
-
-    memory.Write( 0x0003, btp::INS_TAB );
-
-    for ( int i = 0; i < 2; i++ )
-        cpu.Execute();
-
-    printf( "%02X\n", cpu.B.value );
-
+    Micro16 micro16;
+    micro16.Run();
 
     return 0;
 }
