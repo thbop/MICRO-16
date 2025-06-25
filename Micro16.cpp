@@ -26,7 +26,7 @@
 
 #define TITLE             "Micro-16"
 #define SCREEN_RESOLUTION 128
-#define WINDOW_RATIO      4
+#define WINDOW_RATIO      6
 #define WINDOW_RESOLUTION ( SCREEN_RESOLUTION * WINDOW_RATIO )
 
 // Ignore development package
@@ -118,8 +118,16 @@ void Micro16::Run() {
         #ifdef RUNTIME
         Update();
         #else
-        if ( window->IsKeyPressed( MiDi16::KEY_F5 ) )
-            state = !state;
+        // Basic state management
+        if ( window->IsKeyPressed( MiDi16::KEY_F5 ) ) {
+            cpu.Reset();
+            state = GAME;
+        }
+        else if ( window->IsKeyPressed( MiDi16::KEY_ESC ) ) {
+            state = EDITOR;
+        }
+
+
         switch ( state ) {
             case GAME:   Update();         break;
             case EDITOR: editor->Update(); break;
