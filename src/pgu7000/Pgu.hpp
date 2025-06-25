@@ -44,7 +44,7 @@ constexpr int
     NAMETABLE_SIZE           = NAMETABLE_ENTRY_SIZE * NAMETABLE_ENTRY_COUNT,
 
     // Palette stuff
-    PALETTE_ENTRY_SIZE       = 4, // 4 colors
+    PALETTE_ENTRY_SIZE       = 3, // 3 colors
     PALETTE_ENTRY_COUNT      = 16,
     PALETTE_SIZE             = 1 + PALETTE_ENTRY_SIZE * PALETTE_ENTRY_COUNT,
 
@@ -79,28 +79,29 @@ public:
         bob = memory;
 
         // Hard coded sprite
-        bob->Write( SPRITESHEET + 0,  0b0000000 );
-        bob->Write( SPRITESHEET + 1,  0b0000000 );
-        bob->Write( SPRITESHEET + 2,  0b0100010 );
-        bob->Write( SPRITESHEET + 3,  0b0000000 );
-        bob->Write( SPRITESHEET + 4,  0b0000000 );
-        bob->Write( SPRITESHEET + 5,  0b0100010 );
-        bob->Write( SPRITESHEET + 6,  0b0111110 );
-        bob->Write( SPRITESHEET + 7,  0b0000000 );
+        bob->Write( SPRITESHEET + 0,  0b01000010 );
+        bob->Write( SPRITESHEET + 1,  0b10100101 );
+        bob->Write( SPRITESHEET + 2,  0b00000000 );
+        bob->Write( SPRITESHEET + 3,  0b00011000 );
+        bob->Write( SPRITESHEET + 4,  0b00000000 );
+        bob->Write( SPRITESHEET + 5,  0b00000000 );
+        bob->Write( SPRITESHEET + 6,  0b00000000 );
+        bob->Write( SPRITESHEET + 7,  0b00000000 );
 
-        bob->Write( SPRITESHEET + 8,  0b0000000 );
-        bob->Write( SPRITESHEET + 9,  0b0000000 );
-        bob->Write( SPRITESHEET + 10, 0b0000000 );
-        bob->Write( SPRITESHEET + 11, 0b0000000 );
-        bob->Write( SPRITESHEET + 12, 0b0000000 );
-        bob->Write( SPRITESHEET + 13, 0b0000000 );
-        bob->Write( SPRITESHEET + 14, 0b0000000 );
-        bob->Write( SPRITESHEET + 15, 0b0000000 );
+        bob->Write( SPRITESHEET + 8,  0b00000000 );
+        bob->Write( SPRITESHEET + 9,  0b00000000 );
+        bob->Write( SPRITESHEET + 10, 0b00000000 );
+        bob->Write( SPRITESHEET + 11, 0b00000000 );
+        bob->Write( SPRITESHEET + 12, 0b00000000 );
+        bob->Write( SPRITESHEET + 13, 0b00000000 );
+        bob->Write( SPRITESHEET + 14, 0b00000000 );
+        bob->Write( SPRITESHEET + 15, 0b00000000 );
 
         // Hardcoded palette
         bob->Write( PALETTE + 0, BLACK );
 
         bob->Write( PALETTE + 2, WHITE );
+        bob->Write( PALETTE + 3, PEACH );
     }
 
     // Given sprite coordinates and a palette, renders a sprite at the given
