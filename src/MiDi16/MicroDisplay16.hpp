@@ -227,7 +227,8 @@ namespace MiDi16 {
 
         // Allocates the pixel data buffer
         Surface( int width, int height ) : width( width ), height( height ) {
-            pixels = new uint32_t[width * height];
+            span = width * height * sizeof(uint32_t);
+            pixels = new uint32_t[span];
         }
 
         // Deallocates and destroys surface resources
@@ -235,6 +236,16 @@ namespace MiDi16 {
             delete[] pixels;
             if ( texture != NULL )
                 SDL_DestroyTexture( texture );
+        }
+
+        // Returns the width of the surface
+        int GetWidth() const {
+            return width;
+        }
+
+        // Returns the height of the surface
+        int GetHeight() const {
+            return height;
         }
 
         // Gets the color value at the specified pixel
@@ -256,11 +267,12 @@ namespace MiDi16 {
 
         // Sets all pixels to black
         void Clear() {
-            memset( pixels, 0, width * height * sizeof( uint32_t ) );
+            memset( pixels, 0, span );
         }
 
     private:
         int width, height;
+        size_t span; // Size of pixel buffer in bytes
         SDL_Texture *texture = NULL;
 
         // Updates the surface to get it ready for rendering
@@ -274,7 +286,7 @@ namespace MiDi16 {
         if ( texture == NULL ) {
             texture = SDL_CreateTexture(
                 window->GetSDLRenderer(),
-                SDL_PIXELFORMAT_ABGR8888,
+                SDL_PIXELFORMAT_XBGR8888,
                 SDL_TEXTUREACCESS_STREAMING,
                 width, height
             );
