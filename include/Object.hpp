@@ -135,6 +135,9 @@ private:
     std::unordered_map<std::string, uint16_t> labels;
 };
 
+// Data chunk does nothing special
+using Data = Chunk;
+
 // Class to manage the generated object
 class Object : public Bytes {
 public:

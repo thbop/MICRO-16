@@ -29,10 +29,14 @@
 #define WINDOW_RATIO      4
 #define WINDOW_RESOLUTION ( SCREEN_RESOLUTION * WINDOW_RATIO )
 
+// Ignore development package
+// #define RUNTIME
+
 #include "MiDi16/MicroDisplay16.hpp"
 #include "bob3000/Bob.hpp"
 #include "btp6000/Btp.hpp"
 #include "pgu7000/Pgu.hpp"
+#include "cartlink/CartLink.hpp"
 
 // Main class
 class Micro16 {
