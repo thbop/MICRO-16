@@ -86,7 +86,6 @@ void Micro16::Update() {
 // Draw loop
 void Micro16::Draw() {
     gpu->RenderSprite( 0, 0, 10, 10 );
-    // screen->Set( 0, 0, { 255, 0, 255, 255 } );
 }
 
 // Main loop
