@@ -55,12 +55,21 @@ public:
         // GPU
         gpu = new pgu::PixelGraphicsUnit( screen );
         gpu->SetMemory( &memory );
+
+        #ifndef RUNTIME
+        editor = new Editor( screen );
+        #endif
     }
 
     // Destroy resources
     ~Micro16() {
         delete screen;
         delete window;
+        delete gpu;
+
+        #ifndef RUNTIME
+        delete editor;
+        #endif
     }
 
     // Update loop
@@ -79,6 +88,16 @@ private:
 
     MiDi16::Window *window;
     MiDi16::Surface *screen;
+
+    #ifndef RUNTIME
+    Editor *editor;
+
+    enum State {
+        GAME,
+        EDITOR,
+    };
+    int state = EDITOR;
+    #endif
 };
 
 
@@ -96,10 +115,26 @@ void Micro16::Draw() {
 void Micro16::Run() {
     while ( window->IsRunning() ) {
         window->PollEvents();
+        #ifdef RUNTIME
         Update();
+        #else
+        if ( window->IsKeyPressed( MiDi16::KEY_F5 ) )
+            state = !state;
+        switch ( state ) {
+            case GAME:   Update();         break;
+            case EDITOR: editor->Update(); break;
+        }
+        #endif
 
         screen->Clear();
+        #ifdef RUNTIME
         Draw();
+        #else
+        switch ( state ) {
+            case GAME:   Draw();         break;
+            case EDITOR: editor->Draw(); break;
+        }
+        #endif
 
         screen->BlitFill( window );
         window->Flip();

@@ -28,5 +28,23 @@
 
 #include "../MiDi16/MicroDisplay16.hpp"
 
+// Cartlink editor
+class Editor {
+public:
+    // Empty constructor
+    Editor() {}
+    // Constructor
+    Editor( MiDi16::Surface *screen ) : screen( screen ) {}
+
+    // Update loop
+    void Update() {}
+
+    // Draw loop
+    void Draw() {}
+
+private:
+    MiDi16::Surface *screen;
+};
+
 #endif
 #endif

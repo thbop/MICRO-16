@@ -24,6 +24,7 @@
 #define MICRODISPLAY16_HPP
 
 #include <iostream>
+#include <vector>
 
 #include "stdint.h"
 #include "string.h"
@@ -37,6 +38,96 @@
 
 // Micro Display 16 namespace
 namespace MiDi16 {
+
+    // Keyboard enums
+    enum Key {
+        KEY_A = SDL_SCANCODE_A,
+        KEY_B = SDL_SCANCODE_B,
+        KEY_C = SDL_SCANCODE_C,
+        KEY_D = SDL_SCANCODE_D,
+        KEY_E = SDL_SCANCODE_E,
+        KEY_F = SDL_SCANCODE_F,
+        KEY_G = SDL_SCANCODE_G,
+        KEY_H = SDL_SCANCODE_H,
+        KEY_I = SDL_SCANCODE_I,
+        KEY_J = SDL_SCANCODE_J,
+        KEY_K = SDL_SCANCODE_K,
+        KEY_L = SDL_SCANCODE_L,
+        KEY_M = SDL_SCANCODE_M,
+        KEY_N = SDL_SCANCODE_N,
+        KEY_O = SDL_SCANCODE_O,
+        KEY_P = SDL_SCANCODE_P,
+        KEY_Q = SDL_SCANCODE_Q,
+        KEY_R = SDL_SCANCODE_R,
+        KEY_S = SDL_SCANCODE_S,
+        KEY_T = SDL_SCANCODE_T,
+        KEY_U = SDL_SCANCODE_U,
+        KEY_V = SDL_SCANCODE_V,
+        KEY_W = SDL_SCANCODE_W,
+        KEY_X = SDL_SCANCODE_X,
+        KEY_Y = SDL_SCANCODE_Y,
+        KEY_Z = SDL_SCANCODE_Z,
+
+        KEY_1 = SDL_SCANCODE_1,
+        KEY_2 = SDL_SCANCODE_2,
+        KEY_3 = SDL_SCANCODE_3,
+        KEY_4 = SDL_SCANCODE_4,
+        KEY_5 = SDL_SCANCODE_5,
+        KEY_6 = SDL_SCANCODE_6,
+        KEY_7 = SDL_SCANCODE_7,
+        KEY_8 = SDL_SCANCODE_8,
+        KEY_9 = SDL_SCANCODE_9,
+        KEY_0 = SDL_SCANCODE_0,
+
+        KEY_ENTER = SDL_SCANCODE_RETURN,
+        KEY_ESC = SDL_SCANCODE_ESCAPE,
+        KEY_BACKSPACE = SDL_SCANCODE_BACKSPACE,
+        KEY_TAB = SDL_SCANCODE_TAB,
+        KEY_SPACE = SDL_SCANCODE_SPACE,
+
+        KEY_MINUS = SDL_SCANCODE_MINUS,
+        KEY_EQUALS = SDL_SCANCODE_EQUALS,
+        KEY_LEFTBRACKET = SDL_SCANCODE_LEFTBRACKET,
+        KEY_RIGHTBRACKET = SDL_SCANCODE_RIGHTBRACKET,
+        KEY_BACKSLASH = SDL_SCANCODE_BACKSLASH,
+
+        KEY_SEMICOLON = SDL_SCANCODE_SEMICOLON,
+        KEY_APOSTROPHE = SDL_SCANCODE_APOSTROPHE,
+        KEY_GRAVE = SDL_SCANCODE_GRAVE,
+        KEY_COMMA = SDL_SCANCODE_COMMA,
+        KEY_PERIOD = SDL_SCANCODE_PERIOD,
+        KEY_SLASH = SDL_SCANCODE_SLASH,
+
+        KEY_CAPSLOCK = SDL_SCANCODE_CAPSLOCK,
+
+        KEY_F1 = SDL_SCANCODE_F1,
+        KEY_F2 = SDL_SCANCODE_F2,
+        KEY_F3 = SDL_SCANCODE_F3,
+        KEY_F4 = SDL_SCANCODE_F4,
+        KEY_F5 = SDL_SCANCODE_F5,
+        KEY_F6 = SDL_SCANCODE_F6,
+        KEY_F7 = SDL_SCANCODE_F7,
+        KEY_F8 = SDL_SCANCODE_F8,
+        KEY_F9 = SDL_SCANCODE_F9,
+        KEY_F10 = SDL_SCANCODE_F10,
+        KEY_F11 = SDL_SCANCODE_F11,
+        KEY_F12 = SDL_SCANCODE_F12,
+
+        KEY_PRINTSCREEN = SDL_SCANCODE_PRINTSCREEN,
+        KEY_SCROLLOCK = SDL_SCANCODE_SCROLLLOCK,
+        KEY_PAUSE = SDL_SCANCODE_PAUSE,
+        KEY_INSERT = SDL_SCANCODE_INSERT,
+
+        KEY_HOME = SDL_SCANCODE_HOME,
+        KEY_PAGEUP = SDL_SCANCODE_PAGEUP,
+        KEY_DELETE = SDL_SCANCODE_DELETE,
+        KEY_END = SDL_SCANCODE_END,
+        KEY_PAGEDOWN = SDL_SCANCODE_PAGEDOWN,
+        KEY_RIGHT = SDL_SCANCODE_RIGHT,
+        KEY_LEFT = SDL_SCANCODE_LEFT,
+        KEY_DOWN = SDL_SCANCODE_DOWN,
+        KEY_UP = SDL_SCANCODE_UP,
+    };
     
     // Window class to manage SDL3 windows
     class Window {
@@ -83,20 +174,42 @@ namespace MiDi16 {
             SDL_RenderPresent( renderer );
         }
 
+        // Checks if a key is down
+        bool IsKeyDown( int scancode ) {
+            const bool *keys = SDL_GetKeyboardState( NULL );
+            return keys[scancode];
+        }
+
+        // Checks if a key is pressed
+        bool IsKeyPressed( int scancode ) {
+            for ( auto it : pressedKeys ) {
+                if ( it == scancode )
+                    return true;
+            }
+            return false;
+        }
+
     private:
         SDL_Window *window;
         SDL_Renderer *renderer;
         SDL_Event event;
+        std::vector<int> pressedKeys;
 
         bool running = true;
     };
 
     // Pulls basic events like window close
     void Window::PollEvents() {
+        pressedKeys.clear();
         while ( SDL_PollEvent( &event ) ) {
             switch ( event.type ) {
                 case SDL_EVENT_QUIT:
                     running = false;
+                    break;
+                case SDL_EVENT_KEY_DOWN:
+                    // Push pressed key to the list
+                    if ( !event.key.repeat )
+                        pressedKeys.push_back( event.key.scancode );
                     break;
             }
         }
