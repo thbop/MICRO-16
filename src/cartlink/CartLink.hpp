@@ -47,7 +47,9 @@ public:
     void Update() {}
 
     // Draw loop
-    void Draw() {}
+    void Draw() {
+        screen->Blit( font, 0, 0 );
+    }
 
 private:
     MiDi16::Surface *screen; // Managed by Micro16 class
