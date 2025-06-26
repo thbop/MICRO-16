@@ -34,7 +34,14 @@ public:
     // Empty constructor
     Editor() {}
     // Constructor
-    Editor( MiDi16::Surface *screen ) : screen( screen ) {}
+    Editor( MiDi16::Surface *screen ) : screen( screen ) {
+        font = MiDi16::Surface::FromImage( "resources/font.png" );
+    }
+
+    // Clean up resources
+    ~Editor() {
+        delete font;
+    }
 
     // Update loop
     void Update() {}
@@ -43,7 +50,8 @@ public:
     void Draw() {}
 
 private:
-    MiDi16::Surface *screen;
+    MiDi16::Surface *screen; // Managed by Micro16 class
+    MiDi16::Surface *font;
 };
 
 #endif

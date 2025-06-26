@@ -30,6 +30,7 @@
 #include "string.h"
 
 #include "SDL3/SDL.h"
+#include "SDL3_image/SDL_image.h"
 
 // If x, print SDL_GetError()
 #define MiDi16_ASSERT( x ) \
@@ -136,7 +137,7 @@ namespace MiDi16 {
         // Basic constructor
         Window( const char *title, int width, int height ) {
             // Initialize SDL
-            SDL_Init( SDL_INIT_VIDEO );
+            MiDi16_ASSERT( !SDL_Init( SDL_INIT_VIDEO ) );
 
             // Create window
             window = SDL_CreateWindow(
@@ -238,6 +239,9 @@ namespace MiDi16 {
                 SDL_DestroyTexture( texture );
         }
 
+        // From image constructor - heap allocated pointer
+        static Surface *FromImage( const char *file );
+
         // Returns the width of the surface
         int GetWidth() const {
             return width;
@@ -279,6 +283,29 @@ namespace MiDi16 {
         void Update( Window *window );
 
     };
+
+    // From image constructor - heap allocated pointer
+    Surface *Surface::FromImage( const char *file ) {
+        // Load and convert image to the correct format
+        SDL_Surface *surface = IMG_Load( file );
+        if ( surface->format != SDL_PIXELFORMAT_XBGR8888 ) {
+            SDL_Surface *convertedSurface =
+                SDL_ConvertSurface( surface, SDL_PIXELFORMAT_XBGR8888 );
+            SDL_DestroySurface( surface );
+            surface = convertedSurface;
+        }
+
+        // Copy SDL_Surface to Surface
+        Surface *newSurface = new Surface( surface->w, surface->h );
+        memcpy(
+            newSurface->pixels,
+            surface->pixels,
+            surface->pitch * surface->h
+        );
+        SDL_DestroySurface( surface );
+
+        return newSurface;
+    }
 
     // Updates the surface to get it ready for rendering
     void Surface::Update( Window *window ) {
