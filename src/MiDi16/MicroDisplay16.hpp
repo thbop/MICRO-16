@@ -129,6 +129,10 @@ namespace MiDi16 {
         KEY_DOWN = SDL_SCANCODE_DOWN,
         KEY_UP = SDL_SCANCODE_UP,
     };
+
+    // Fancy SDL_Rect wrapping
+    // TODO: Make fancy class (if needed)
+    using Rect = SDL_Rect;
     
     // Window class to manage SDL3 windows
     class Window {
@@ -271,7 +275,10 @@ namespace MiDi16 {
         // MiDi16 only supports one window
         void Blit( Window *window, int x, int y );
 
-        // Blits a Surface to another surface
+        // Blits another Surface onto this surface
+        void Blit( Surface *surface, Rect srcRect, Rect dstRect );
+
+        // Blits another Surface onto this surface
         void Blit( Surface *surface, int x, int y );
 
         // Blits and scales the surface to fill the window
@@ -335,6 +342,11 @@ namespace MiDi16 {
             window->GetSDLRenderer(),
             texture, NULL, &rect
         );
+    }
+
+    // Blits another Surface onto this surface
+    void Surface::Blit( Surface *src, Rect srcRect, Rect dstRect ) {
+        SDL_BlitSurface( src->surface, &srcRect, surface, &dstRect );
     }
 
     // Blits another Surface onto this surface

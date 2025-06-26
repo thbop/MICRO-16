@@ -48,7 +48,7 @@ public:
 
     // Draw loop
     void Draw() {
-        screen->Blit( font, 0, 0 );
+        screen->Blit( font, (MiDi16::Rect){ 15, 0, 3, 5 }, (MiDi16::Rect){ 0, 0, 3, 5 } );
     }
 
 private:
