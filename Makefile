@@ -1,6 +1,6 @@
 CC = g++
 CFLAGS = -g -Wall -fdiagnostics-color=always -Isrc -Iinclude
-LDFLAGS = -Llib -lSDL3
+LDFLAGS = -Llib -lSDL3 -lSDL3_image
 SOURCES = Micro16.cpp $(wildcard src/**/*.cpp)
 
 
