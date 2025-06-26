@@ -222,19 +222,24 @@ namespace MiDi16 {
     // Surface class
     class Surface {
     public:
-        uint32_t *pixels;
-
+        // Empty constructor
         Surface() {}
 
+        // SDL_Surface constructor
+        Surface( SDL_Surface *surface ) : surface( surface ) {}
+
         // Allocates the pixel data buffer
-        Surface( int width, int height ) : width( width ), height( height ) {
-            span = width * height * sizeof(uint32_t);
-            pixels = new uint32_t[span];
+        Surface( int width, int height ) {
+            surface = SDL_CreateSurface(
+                width, height,
+                SDL_PIXELFORMAT_XBGR8888
+            );
         }
 
         // Deallocates and destroys surface resources
         ~Surface() {
-            delete[] pixels;
+            if ( surface != NULL )
+                SDL_DestroySurface( surface );
             if ( texture != NULL )
                 SDL_DestroyTexture( texture );
         }
@@ -243,40 +248,42 @@ namespace MiDi16 {
         static Surface *FromImage( const char *file );
 
         // Returns the width of the surface
-        int GetWidth() const {
-            return width;
+        int width() const {
+            return surface->w;
         }
 
         // Returns the height of the surface
-        int GetHeight() const {
-            return height;
+        int height() const {
+            return surface->h;
         }
 
         // Gets the color value at the specified pixel
         Color Get( int x, int y ) const {
-            return *(Color*)( pixels + y * width + x );
+            return *(Color*)( (uint32_t*)surface->pixels + y * width() + x );
         }
 
         // Sets the color value at the specified pixel
         void Set( int x, int y, Color color ) {
-            *(Color*)( pixels + ( y * width ) + x ) = color;
+            *(Color*)( (uint32_t*)surface->pixels + y * width() + x ) = color;
         }
 
         // Blits the Surface to the window
         // MiDi16 only supports one window
         void Blit( Window *window, int x, int y );
 
+        // Blits a Surface to another surface
+        void Blit( Surface *surface, int x, int y );
+
         // Blits and scales the surface to fill the window
         void BlitFill( Window *window );
 
         // Sets all pixels to black
         void Clear() {
-            memset( pixels, 0, span );
+            memset( surface->pixels, 0, surface->pitch * height() );
         }
 
     private:
-        int width, height;
-        size_t span; // Size of pixel buffer in bytes
+        SDL_Surface *surface;
         SDL_Texture *texture = NULL;
 
         // Updates the surface to get it ready for rendering
@@ -296,13 +303,7 @@ namespace MiDi16 {
         }
 
         // Copy SDL_Surface to Surface
-        Surface *newSurface = new Surface( surface->w, surface->h );
-        memcpy(
-            newSurface->pixels,
-            surface->pixels,
-            surface->pitch * surface->h
-        );
-        SDL_DestroySurface( surface );
+        Surface *newSurface = new Surface( surface );
 
         return newSurface;
     }
@@ -313,17 +314,14 @@ namespace MiDi16 {
         if ( texture == NULL ) {
             texture = SDL_CreateTexture(
                 window->GetSDLRenderer(),
-                SDL_PIXELFORMAT_XBGR8888,
+                surface->format,
                 SDL_TEXTUREACCESS_STREAMING,
-                width, height
+                width(), height()
             );
             SDL_SetTextureScaleMode( texture, SDL_SCALEMODE_NEAREST );
         }
         
-        SDL_UpdateTexture(
-            texture, NULL, pixels,
-            width * sizeof( uint32_t )
-        );
+        SDL_UpdateTexture( texture, NULL, surface->pixels, surface->pitch );
     }
 
     // Blits the Surface to the window
@@ -331,12 +329,21 @@ namespace MiDi16 {
     void Surface::Blit( Window *window, int x, int y ) {
         Update( window );
 
-        SDL_FRect rect = { (float)x, (float)y, (float)width, (float)height };
+        SDL_FRect rect = { (float)x, (float)y, (float)width(), (float)height() };
 
         SDL_RenderTexture(
             window->GetSDLRenderer(),
             texture, NULL, &rect
         );
+    }
+
+    // Blits another Surface onto this surface
+    void Surface::Blit( Surface *src, int x, int y ) {
+        SDL_Rect
+            srcRect = { 0, 0, src->width(), src->height() },
+            dstRect = { x, y, srcRect.w, srcRect.h };
+
+        SDL_BlitSurface( src->surface, &srcRect, surface, &dstRect );
     }
 
     // Blits and scales the surface to fill the window
