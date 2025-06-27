@@ -20,42 +20,30 @@
 * SOFTWARE.
 */
 
-#ifndef RUNTIME
-#ifndef CARTLINK_HPP
-#define CARTLINK_HPP
+#ifndef GUI_HPP
+#define GUI_HPP
 
-// Essentially the editor + linker
+// A little software-rendered gui library (without a proper name)
 
 #include "../MiDi16/MicroDisplay16.hpp"
 
-// Cartlink editor
-class Editor {
+// GUI namespace
+namespace gui {
+
+// Basic GUI element
+class Element {
 public:
-    // Empty constructor
-    Editor() {}
-    // Constructor
-    Editor( MiDi16::Surface *screen ) : screen( screen ) {
-        font = new MiDi16::Font( "resources/font.png", 3, 5 );
-        font->Render( "Hello World!" );
-    }
+    
 
-    // Clean up resources
-    ~Editor() {
-        delete font;
-    }
-
-    // Update loop
-    void Update() {}
-
-    // Draw loop
-    void Draw() {
-        screen->Blit( font, 10, 10 );
-    }
 
 private:
-    MiDi16::Surface *screen; // Managed by Micro16 class
-    MiDi16::Font *font;
+    MiDi16::Window *window;
+    MiDi16::Surface *screen;
+
+    MiDi16::Rect rect;
+};
+    
 };
 
-#endif
+
 #endif
