@@ -57,7 +57,7 @@ public:
         gpu->SetMemory( &memory );
 
         #ifndef RUNTIME
-        editor = new Editor( screen );
+        editor = new Editor( window, screen );
         #endif
     }
 

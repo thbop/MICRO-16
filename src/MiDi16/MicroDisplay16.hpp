@@ -32,6 +32,8 @@
 #include "SDL3/SDL.h"
 #include "SDL3_image/SDL_image.h"
 
+#include "stringextra.hpp"
+
 // If x, print SDL_GetError()
 #define MiDi16_ASSERT( x ) \
     if ( ( x ) ) \
@@ -120,6 +122,15 @@ enum Key {
     KEY_LEFT = SDL_SCANCODE_LEFT,
     KEY_DOWN = SDL_SCANCODE_DOWN,
     KEY_UP = SDL_SCANCODE_UP,
+
+    KEY_LCTRL = SDL_SCANCODE_LCTRL,
+    KEY_LSHIFT = SDL_SCANCODE_LSHIFT,
+    KEY_LALT = SDL_SCANCODE_LALT,
+    KEY_LGUI = SDL_SCANCODE_LGUI,
+    KEY_RCTRL = SDL_SCANCODE_RCTRL,
+    KEY_RSHIFT = SDL_SCANCODE_RSHIFT,
+    KEY_RALT = SDL_SCANCODE_RALT,
+    KEY_RGUI = SDL_SCANCODE_RGUI,
 };
 // Fancy SDL_Rect wrapping
 // TODO: Make fancy class (if needed)
@@ -175,11 +186,40 @@ public:
         }
         return false;
     }
+
+    // Returns a vector of keys that were pressed that frame
+    const std::vector<int> &GetPressedKeys() const {
+        return pressedKeys;
+    }
+
+    // Starts capturing text input
+    void StartTextInput() {
+        if ( !captureTextInput )
+            SDL_StartTextInput( window );
+        captureTextInput = true;
+    }
+
+    // Returns a copy of the captured text input
+    std::string GetTextInput() const {
+        return textInput;
+    }
+
+    // Stops capturing text input
+    void StopTextInput() {
+        SDL_StopTextInput( window );
+        textInput.clear();
+        captureTextInput = false;
+    }
+
 private:
     SDL_Window *window;
     SDL_Renderer *renderer;
+
     SDL_Event event;
     std::vector<int> pressedKeys;
+    bool captureTextInput = false;
+    std::string textInput;
+
     bool running = true;
 };
 // Pulls basic events like window close
@@ -194,6 +234,10 @@ void Window::PollEvents() {
                 // Push pressed key to the list
                 if ( !event.key.repeat )
                     pressedKeys.push_back( event.key.scancode );
+                break;
+            case SDL_EVENT_TEXT_INPUT:
+                if ( captureTextInput )
+                    textInput += event.text.text;
                 break;
         }
     }
@@ -243,11 +287,20 @@ public:
     }
     // Gets the color value at the specified pixel
     Color Get( int x, int y ) const {
-        return *(Color*)( (uint32_t*)surface->pixels + y * width() + x );
+        if (
+            ( 0 <= x && x < surface->w ) &&
+            ( 0 <= y && y < surface->h )
+        )
+            return *(Color*)( (uint32_t*)surface->pixels + y * width() + x );
+        return { 0, 0, 0, 0 };
     }
     // Sets the color value at the specified pixel
     void Set( int x, int y, Color color ) {
-        *(Color*)( (uint32_t*)surface->pixels + y * width() + x ) = color;
+        if (
+            ( 0 <= x && x < surface->w ) &&
+            ( 0 <= y && y < surface->h )
+        )
+            *(Color*)( (uint32_t*)surface->pixels + y * width() + x ) = color;
     }
     // Blits the Surface to the window
     // MiDi16 only supports one window
@@ -356,9 +409,11 @@ void Font::Render( const char *text ) {
     if ( surface != nullptr )
         SDL_DestroySurface( surface );
     
-    int stringLength = (int)strlen( text );
-    int width = stringLength * ( glyphWidth + 1 );
-    surface = SDL_CreateSurface( width, glyphHeight, glyphs->format );
+    int
+        stringLength = (int)strlen( text ),
+        renderWidth  = stringLength * ( glyphWidth + 1 );
+
+    surface = SDL_CreateSurface( renderWidth, glyphHeight, glyphs->format );
     
     SDL_Rect
         srcRect,
@@ -367,7 +422,6 @@ void Font::Render( const char *text ) {
     for ( int i = 0; i < stringLength; i++ ) {
         srcRect = SampleChar( text[i] );
         SDL_BlitSurface( glyphs, &srcRect, surface, &dstRect );
-
         dstRect.x += glyphWidth + 1;
     }
 }

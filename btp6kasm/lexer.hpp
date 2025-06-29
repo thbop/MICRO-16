@@ -32,7 +32,7 @@
 
 #include "stdint.h"
 
-#include "stringextra.hpp"
+#include "../include/stringextra.hpp"
 
 #include "settings.hpp"
 
