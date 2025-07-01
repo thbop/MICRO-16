@@ -263,6 +263,10 @@ public:
     Surface ( const char *imageFile ) {
         // Load and convert image to the correct format
         surface = IMG_Load( imageFile );
+        if ( surface == nullptr ) {
+            std::cout << "Failed to load \"" << imageFile << "\"!\n";
+            return;
+        }
         if ( surface->format != SDL_PIXELFORMAT_XBGR8888 ) {
             SDL_Surface *convertedSurface =
                 SDL_ConvertSurface( surface, SDL_PIXELFORMAT_XBGR8888 );
