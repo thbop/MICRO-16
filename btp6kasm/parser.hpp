@@ -23,8 +23,7 @@
 #ifndef PARSER_HPP
 #define PARSER_HPP
 
-#define PARSER_OBJECT_METADATA_END          0xFF
-#define PARSER_OBJECT_METADATA_ENTRY_LENGTH 3
+
 
 
 #include <vector>
@@ -33,6 +32,7 @@
 #include "stdint.h"
 
 #include "../src/btp6000/Instructions.hpp"
+#include "../include/Object.hpp"
 
 #include "settings.hpp"
 #include "lexer.hpp"
@@ -228,154 +228,6 @@ uint16_t GetPointerImOffset( token::Instruction *token ) {
 
 }
 
-// A byte storage class
-class Bytes {
-public:
-    // Empty constructor
-    Bytes() {}
-
-    // Appends a byte to the buffer
-    void Append( uint8_t byte ) {
-        data.push_back( byte );
-    }
-
-    // Appends a word to the buffer
-    void Append( uint16_t word ) {
-        data.push_back( word & 0xFF );
-        data.push_back( word >> 8 );
-    }
-
-    // Appends a string of bytes to the buffer
-    void Append( uint8_t *bytes, size_t size ) {
-        size_t oldSize = data.size();
-        data.resize( oldSize + size );
-
-        memcpy( data.data() + oldSize, bytes, size );
-    }
-
-    // Appends a Bytes object to the buffer
-    void Append( Bytes *bytes ) {
-        Append( (uint8_t*)bytes->buffer(), bytes->size() );
-    }
-
-    // Returns the raw byte buffer
-    const uint8_t *buffer() const {
-        return data.data();
-    }
-
-    // Returns the buffer size
-    size_t size() const {
-        return data.size();
-    }
-
-private:
-    std::vector<uint8_t> data;
-};
-
-// Byte chunk storage class
-class Chunk : public Bytes {
-public:
-    // Chunk type
-    enum Type {
-        HEADER,   // Basic information about the whole file for the linker
-        CODE,     // Code blocks
-        DATA,     // Data blocks
-    };
-    int type = HEADER;
-
-    // Empty constructor
-    Chunk() {}
-
-    // Virtual destructor
-    virtual ~Chunk() = default;
-
-    // Construct the correct bytes for the particular chunk type
-    virtual void Build() {}
-
-};
-
-
-// Basic information about the whole file for the linker
-// Also includes external references
-class Header : public Chunk {
-public:
-    uint16_t origin; // .org
-
-    Header() {
-        type = HEADER;
-    }
-
-    // Build the header
-    void Build() override {
-        Append( origin );
-    }
-};
-
-// Instruction chunk
-class Code : public Chunk {
-public:
-    Code() {
-        type = CODE;
-    }
-
-    // Adds a label
-    void AddLabel() {}
-
-private:
-    std::unordered_map<std::string, uint16_t> labels;
-};
-
-// Class to manage the generated object
-class Object : public Bytes {
-public:
-    std::vector<Chunk*> chunks;
-    Header *header;
-    Code *code;
-
-    // Setup basic object
-    Object() {
-        header = new Header();
-        code   = new Code();
-
-        chunks.push_back( header );
-        chunks.push_back( code );
-    }
-
-    // Free up chunks when we're done building them
-    ~Object() {
-        for ( auto chunk : chunks )
-            delete chunk;
-    }
-
-    // Adds a chunk to the internal list
-    void AddChunk( Chunk *chunk ) {
-        chunks.push_back( chunk );
-    }
-
-    // Construct the chunks into the buffer with the correct metadata
-    void Build();
-
-};
-
-// Construct the chunks into the buffer with the correct metadata
-void Object::Build() {
-    // Each metadata entry is 3 bytes + the 1 end byte
-    // This is kinda like a very basic file system to guide the linker
-    uint16_t pointer = chunks.size() * PARSER_OBJECT_METADATA_ENTRY_LENGTH + 1;
-    for ( Chunk *chunk : chunks ) {
-        Append( (uint8_t)chunk->type );
-        Append( pointer );
-
-        chunk->Build();
-        pointer += (uint16_t)chunk->size(); // Increment to the next chunk
-    }
-    Append( (uint8_t)PARSER_OBJECT_METADATA_END );
-
-    // Actually add the data
-    for ( Chunk *chunk : chunks ) {
-        Append( chunk );
-    }
-}
 
 // Parses the lexed data and generated the object
 class Parser {
@@ -410,7 +262,7 @@ public:
 
 private:
     Lexer *lexer;
-    Object output;
+    obj::Object output;
     std::ofstream file;
 
     #ifdef DEBUG
