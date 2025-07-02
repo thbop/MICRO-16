@@ -23,6 +23,9 @@
 #ifndef BTP_HPP
 #define BTP_HPP
 
+#define BTP_DEBUG
+
+#include "stdio.h"
 #include "stdint.h"
 
 #include "../bob3000/Bob.hpp"

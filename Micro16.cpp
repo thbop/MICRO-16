@@ -103,7 +103,7 @@ private:
 
 // Update loop
 void Micro16::Update() {
-
+    cpu.Execute();
 }
 
 // Draw loop
@@ -113,6 +113,13 @@ void Micro16::Draw() {
 
 // Main loop
 void Micro16::Run() {
+    // Load hardcoded program into memory
+    uint8_t program[] = {
+        0xA0, 0x12, 0x00, 0xAA, 0x87, 0x00, 0x8B,
+        0x80, 0x02, 0x00, 0x95, 0xC5, 0xFE,
+    };
+    memcpy( memory.data() + 0x2000, program, sizeof(program) );
+
     while ( window->IsRunning() ) {
         window->PollEvents();
         #ifdef RUNTIME
@@ -121,6 +128,7 @@ void Micro16::Run() {
         // Basic state management
         if ( window->IsKeyPressed( MiDi16::KEY_F5 ) ) {
             cpu.Reset();
+            cpu.CS = 0x200; // Hardcode the code segment
             state = GAME;
         }
         else if ( window->IsKeyPressed( MiDi16::KEY_ESC ) ) {

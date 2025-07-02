@@ -1,4 +1,9 @@
-.org 6512h
+.org 2000h
 
 lda 0x12
-ldb [[bp+0x42]+0x54]
+tax
+stx [0]
+txy
+ldx 2
+sty [bp+x]
+jmp 0xFE

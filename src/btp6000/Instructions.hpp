@@ -80,12 +80,12 @@ enum Instructions {
     INS_STX_DPO = 0x88, // [[DS:x]+Y]    = X
 
     // TX-X - Transfer X-index to X
-    INS_TXA     = 0xA9, // A  = X
-    INS_TXB     = 0xAA, // B  = X
-    INS_TXY     = 0xAB, // Y  = X
-    INS_TXSS    = 0xAC, // SS = X
-    INS_TXCS    = 0xAD, // CS = X
-    INS_TXDS    = 0xAE, // DS = X
+    INS_TXA     = 0x89, // A  = X
+    INS_TXB     = 0x8A, // B  = X
+    INS_TXY     = 0x8B, // Y  = X
+    INS_TXSS    = 0x8C, // SS = X
+    INS_TXCS    = 0x8D, // CS = X
+    INS_TXDS    = 0x8E, // DS = X
 
     // LDY - Load Y-pointer
     INS_LDY_IM  = 0x90, // Y = Im
@@ -133,7 +133,7 @@ enum Instructions {
     INS_JNE     = 0xC2, // Jump not equal,     if ZF == 0
     INS_JG      = 0xC3, // Jump greater,       if CF == 1
     INS_JGE     = 0xC4, // Jump greater equal, if NF == 1
-    INS_JMP     = 0xC5, // Short jump,         sets IP
+    INS_JMP     = 0xC5, // Short jump,         increments IP
     INS_LJMP    = 0xC6, // Long jump,          sets CS:IP
 
     // Interrupts

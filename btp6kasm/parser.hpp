@@ -45,20 +45,21 @@ namespace parser {
 namespace ins {
 
 enum AddressingMode {
-    NONE  = 0b00000000000, // None
-    IM    = 0b00000000001, // Immediate
-    SO    = 0b00000000010, // Stack offset
-    SOI   = 0b00000000100, // Stack offset immediate
-    SPO   = 0b00000001000, // Stack pointer offset
-    SPOI  = 0b00000010000, // Stack pointer offset immediate
-    SPIO  = 0b00000100000, // Stack pointer immediate offset
-    DO    = 0b00001000000, // Data offset
-    DOI   = 0b00010000000, // Data offset immediate
-    DPO   = 0b00100000000, // Data offset pointer
-    DPOI  = 0b01000000000, // Data pointer offset immediate
-    DPIO  = 0b10000000000, // Data pointer immediate offset
-    SPIOI = SPOI | SPIO,   // Stack pointer immediate offset immediate
-    DPIOI = DPOI | DPIO,   // Data pointer immediate offset immediate
+    NONE  = 0b000000000000, // None
+    IM8   = 0b000000000001, // Immediate 8
+    IM16  = 0b000000000010, // Immediate 16
+    SO    = 0b000000000100, // Stack offset
+    SOI   = 0b000000001000, // Stack offset immediate
+    SPO   = 0b000000010000, // Stack pointer offset
+    SPOI  = 0b000000100000, // Stack pointer offset immediate
+    SPIO  = 0b000001000000, // Stack pointer immediate offset
+    DO    = 0b000010000000, // Data offset
+    DOI   = 0b000100000000, // Data offset immediate
+    DPO   = 0b001000000000, // Data offset pointer
+    DPOI  = 0b010000000000, // Data pointer offset immediate
+    DPIO  = 0b100000000000, // Data pointer immediate offset
+    SPIOI = SPOI | SPIO,    // Stack pointer immediate offset immediate
+    DPIOI = DPOI | DPIO,    // Data pointer immediate offset immediate
 };
 
 const Line
@@ -83,7 +84,7 @@ struct Info {
 // Instructions
 const std::unordered_map<std::string, Info> instructions = {
     // Accumulator stuff
-    { "lda",  { INS_LDA_IM, IM | SO | SPO | DO | DPO } },
+    { "lda",  { INS_LDA_IM, IM16 | SO | SPO | DO | DPO } },
     { "sta",  { INS_STA_SO - 1, SO | SPO | DO | DPO } },
     { "tab",  { INS_TAB, NONE } },
     { "tax",  { INS_TAX, NONE } },
@@ -93,7 +94,7 @@ const std::unordered_map<std::string, Info> instructions = {
     { "tads", { INS_TADS, NONE } },
 
     // Base stuff
-    { "ldb",  { INS_LDB_IM, IM | SOI | SPIOI | DOI | DPIOI } },
+    { "ldb",  { INS_LDB_IM, IM16 | SOI | SPIOI | DOI | DPIOI } },
     { "stb",  { INS_STB_SO - 1, SOI | SPIOI | DOI | DPIOI } },
     { "tba",  { INS_TBA, NONE } },
     { "tbx",  { INS_TBX, NONE } },
@@ -103,7 +104,7 @@ const std::unordered_map<std::string, Info> instructions = {
     { "tbds", { INS_TBDS, NONE } },
 
     // X-index stuff
-    { "ldx",  { INS_LDX_IM, IM | SOI | SPOI | DOI | DPOI } },
+    { "ldx",  { INS_LDX_IM, IM16 | SOI | SPOI | DOI | DPOI } },
     { "stx",  { INS_STX_SO - 1, SOI | SPOI | DOI | DPOI } },
     { "txa",  { INS_TXA, NONE } },
     { "txb",  { INS_TXB, NONE } },
@@ -113,7 +114,7 @@ const std::unordered_map<std::string, Info> instructions = {
     { "txds", { INS_TXDS, NONE } },
 
     // Y-pointer stuff
-    { "ldy",  { INS_LDY_IM, IM | SO | SPIO | DO | DPIO } },
+    { "ldy",  { INS_LDY_IM, IM16 | SO | SPIO | DO | DPIO } },
     { "sty",  { INS_STY_SO - 1, SO | SPIO | DO | DPIO } },
     { "tya",  { INS_TYA, NONE } },
     { "tyb",  { INS_TYB, NONE } },
@@ -121,6 +122,9 @@ const std::unordered_map<std::string, Info> instructions = {
     { "tyss", { INS_TYSS, NONE } },
     { "tycs", { INS_TYCS, NONE } },
     { "tyds", { INS_TYDS, NONE } },
+
+    // Jump stuff
+    { "jmp", { INS_JMP, IM8 } },
 
 };
 
@@ -130,8 +134,12 @@ uint16_t GetAddressingMode( token::Instruction *token ) {
         return NONE;
     if ( token->subTokens.size() > 1 )                // Invalid
         return -1;
-    if ( token->subTokens[0]->type == token::NUMBER ) // Immediate
-        return IM;
+    if ( token->subTokens[0]->type == token::NUMBER ) { // Immediate
+        uint16_t number = ( (token::Number*)token->subTokens[0] )->value;
+        if ( number > 0xFF )
+            return IM16;
+        return IM8;
+    }
     
     // Bracket land
     if ( token->subTokens[0]->type == token::SEPARATOR ) {
@@ -171,7 +179,8 @@ uint16_t GetAddressingMode( token::Instruction *token ) {
 int GetAddressingModeOffset( uint16_t mode ) {
     switch ( mode ) {
         case NONE:
-        case IM:    return 0;
+        case IM8:
+        case IM16:    return 0;
         case SO:
         case SOI:   return 1;
         case SPO:
@@ -191,14 +200,14 @@ int GetAddressingModeOffset( uint16_t mode ) {
 // Gets an immediate value x
 // Assumes token is valid
 // TODO: Make this less bad
-uint8_t GetIm( token::Instruction *token ) {
+uint16_t GetIm( token::Instruction *token ) {
     return ( (token::Number*)token->subTokens[0] )->value;
 }
 
 // Gets an immediate offset [bp+x] or [x]
 // Assumes token is valid
 // TODO: Make this less bad
-uint8_t GetImOffset( token::Instruction *token ) {
+uint16_t GetImOffset( token::Instruction *token ) {
     if ( token->subTokens[0]->subTokens[0]->type == token::NUMBER ) {
         return ( (token::Number*)token->subTokens[0]->subTokens[0] )->value;
     }
@@ -208,7 +217,7 @@ uint8_t GetImOffset( token::Instruction *token ) {
 // Gets an immediate offset [[bp+x]+y] or [[x]+y]
 // Assumes token is valid
 // TODO: Make this less bad
-uint8_t GetPointerOffsetIm( token::Instruction *token ) {
+uint16_t GetPointerOffsetIm( token::Instruction *token ) {
     if (
         token->subTokens[0]->subTokens[0]->subTokens[0]->type == token::NUMBER
     ) {
@@ -332,6 +341,15 @@ void Parser::ParseCode( token::Instruction *token ) {
 
         // Get and check addressing mode
         uint16_t addressingMode = ins::GetAddressingMode( token );
+        
+        // Also check if we need to cast from a byte immediate to a word
+        // immediate
+        if (
+            ( info.addressingModes & ins::IM16 ) &&
+            ( addressingMode & ins::IM8 )
+        )
+            addressingMode = ins::IM16;
+
         if (
             // Don't raise errors if there's no addressing mode
             info.addressingModes != ins::NONE &&
@@ -353,12 +371,20 @@ void Parser::ParseCode( token::Instruction *token ) {
         output.code->Append( opcode );
 
         // Add immediate values
-        if ( ( addressingMode & ins::IM ) )
-            output.code->Append( ins::GetIm( token ) );
-        if ( ( addressingMode & ( ins::SOI | ins::DOI ) ) )
-            output.code->Append( ins::GetImOffset( token ) );
-        else if ( ( addressingMode & ( ins::SPOI | ins::DPOI ) ) )
-            output.code->Append( ins::GetPointerOffsetIm( token ) );
+        switch ( addressingMode ) {
+            case ins::IM8:
+                output.code->Append( (uint8_t)ins::GetIm( token ) );
+                break;
+            case ins::IM16:
+                output.code->Append( ins::GetIm( token ) );
+                break;
+            case ins::SOI:
+            case ins::DOI:
+                output.code->Append( (uint8_t)ins::GetImOffset( token ) );
+                break;
+        }
+        if ( ( addressingMode & ( ins::SPOI | ins::DPOI ) ) )
+            output.code->Append( (uint8_t)ins::GetPointerOffsetIm( token ) );
         if ( ( addressingMode & ( ins::SPIO | ins::DPIO ) ) )
             output.code->Append( ins::GetPointerImOffset( token ) );
     }
