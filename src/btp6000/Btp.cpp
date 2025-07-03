@@ -22,8 +22,10 @@
 
 #include "Btp.hpp"
 
+namespace btp {
+
 // Executes one instruction
-void btp::BetterThanPico::Execute() {
+void BetterThanPico::Execute() {
     uint8_t instruction = Fetch();
     #ifdef BTP_DEBUG
     printf(
@@ -117,7 +119,31 @@ void btp::BetterThanPico::Execute() {
         case INS_TYCS:    CS = Y;                                       break;
         case INS_TYDS:    DS = Y;                                       break;
 
+        case INS_PUSHA:   Push16( A.value );                            break;
+        case INS_POPA:    A.value = Pop16();                            break;
+        case INS_PUSHB:   Push16( B.value );                            break;
+        case INS_POPB:    B.value = Pop16();                            break;
+        case INS_PUSHX:   Push16( X );                                  break;
+        case INS_POPX:    X = Pop16();                                  break;
+        case INS_PUSHY:   Push16( Y );                                  break;
+        case INS_POPY:    Y = Pop16();                                  break;
+        case INS_ENTER:   Push16( BP ); BP = SP;                        break;
+        case INS_LEAVE:   SP = BP; BP = Pop16();                        break;
+
         // JMP
         case INS_JMP:     IP += (int8_t)Fetch();                        break;
     }
 }
+
+#ifdef BTP_DEBUG
+// Dumps all the memory to a file
+void BetterThanPico::DumpMemory( const char *outputFile ) {
+    std::ofstream file( outputFile );
+
+    file.write( (char*)memory->data(), BOB3K_SIZE );
+
+    file.close();
+}
+
+}
+#endif

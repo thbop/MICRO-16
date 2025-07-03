@@ -25,7 +25,7 @@
 
 
 
-
+#include <fstream>
 #include <vector>
 #include <unordered_map>
 
@@ -122,6 +122,18 @@ const std::unordered_map<std::string, Info> instructions = {
     { "tyss", { INS_TYSS, NONE } },
     { "tycs", { INS_TYCS, NONE } },
     { "tyds", { INS_TYDS, NONE } },
+
+    // Stack operations
+    { "pusha", { INS_PUSHA, NONE } },
+    { "popa", { INS_POPA, NONE } },
+    { "pushb", { INS_PUSHB, NONE } },
+    { "popb", { INS_POPB, NONE } },
+    { "pushx", { INS_PUSHX, NONE } },
+    { "popx", { INS_POPX, NONE } },
+    { "pushy", { INS_PUSHY, NONE } },
+    { "popy", { INS_POPY, NONE } },
+    { "enter", { INS_ENTER, NONE } },
+    { "leave", { INS_LEAVE, NONE } },
 
     // Jump stuff
     { "jmp", { INS_JMP, IM8 } },

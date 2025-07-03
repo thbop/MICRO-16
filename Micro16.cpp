@@ -70,6 +70,10 @@ public:
         #ifndef RUNTIME
         delete editor;
         #endif
+
+        #ifdef BTP_DEBUG
+        cpu.DumpMemory( "build/memory.bin" );
+        #endif
     }
 
     // Update loop
@@ -115,8 +119,7 @@ void Micro16::Draw() {
 void Micro16::Run() {
     // Load hardcoded program into memory
     uint8_t program[] = {
-        0xA0, 0x12, 0x00, 0xAA, 0x87, 0x00, 0x8B,
-        0x80, 0x02, 0x00, 0x95, 0xC5, 0xFE,
+        0xA0, 0x00, 0x02, 0xAC, 0xA0, 0xBE, 0xEF, 0x50,
     };
     memcpy( memory.data() + 0x2000, program, sizeof(program) );
 
