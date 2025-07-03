@@ -525,8 +525,11 @@ void Line::Lex() {
 
     for ( int i = 0; i < (int)rawLine.size(); i++ ) {
         char character = rawLine[i];
+        // If comment ---------------------------------------------------------
+        if ( character == ';' )
+            break;
         // If space -----------------------------------------------------------
-        if ( std::isspace( character ) ) {
+        if ( character == ' ' ) {
             AddToken( rawToken );
             rawToken = std::string();
             continue;
@@ -627,7 +630,7 @@ void Lexer::Evaluate() {
         lineNumber++;
 
         line = stringextra::strip( line );
-        if ( !line.empty() )
+        if ( !( line.empty() || line[0] == ';' ) )
             scope.Add( new Line( line, lineNumber ) );
     }
 

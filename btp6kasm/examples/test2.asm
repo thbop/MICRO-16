@@ -6,7 +6,7 @@ main:
 .side_quest:
     ldx [bp+12]
     ldb [bp+54]
-    lda [[x]y]
+    lda [[x]+y]
 
 main2:
     tax
