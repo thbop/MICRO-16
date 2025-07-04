@@ -277,7 +277,7 @@ public:
     #ifdef DEBUG
     // Debug prints the lexed structure
     void PrintStructure() {
-        PrintScope( &lexer->scope, 0 );
+        PrintScope( lexer->scopeStack.back(), 0 );
     }
     #endif
 
@@ -317,12 +317,11 @@ void Parser::PrintLine( Line *line, int indent ) {
 // Prints a scope from the lexer
 void Parser::PrintScope( Scope *scope, int indent ) {
     for ( auto it : scope->lines ) {
+        PrintLine( it, indent + 1 );
         Scope *childScope = dynamic_cast<Scope*>(it);
         if ( childScope )
-            PrintScope( childScope, indent + 1 );
-        else {
-            PrintLine( it, indent + 1 );
-        }
+            PrintScope( childScope, indent + 2 );
+
     }
 }
 #endif
@@ -432,7 +431,7 @@ void Parser::ParseScope( Scope *scope ) {
 
 // Parse the lex structure and output the file
 void Parser::Parse() {
-    ParseScope( &lexer->scope );
+    ParseScope( lexer->scopeStack.back() );
     if ( !error ) {
         output.Build();
 
