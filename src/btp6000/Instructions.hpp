@@ -134,7 +134,7 @@ enum Instructions {
     INS_JG      = 0xC3, // Jump greater,       if CF == 1
     INS_JGE     = 0xC4, // Jump greater equal, if NF == 1
     INS_JMP     = 0xC5, // Short jump,         increments IP
-    INS_LJMP    = 0xC6, // Long jump,          sets CS:IP
+    INS_LJMP    = 0xC6, // Long jump,          sets IP
 
     // Interrupts
     INS_INT     = 0x00, // Interrupt 

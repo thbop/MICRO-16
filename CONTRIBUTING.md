@@ -47,7 +47,7 @@ CoolLongType longVariable = {
 ```
 
 Lastly, here are some other notes:
-- Try to keep lines shorter than 80 characters
+- All lines of code/comments cannot exceed 80 characters, **no exceptions** (now splitscreen is readable)
 - Document your functions/structs
 - Try to make functions only do one simple task
 - Avoid globals

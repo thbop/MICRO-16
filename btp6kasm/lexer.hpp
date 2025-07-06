@@ -116,6 +116,7 @@ public:
         
         for ( int i = 0; i < (int)subTokens.size(); i++ ) {
             equal &= subTokens[i]->Equal( other->subTokens[i], inValue );
+            if ( !equal ) return false;
         }
 
         return equal;
@@ -165,7 +166,8 @@ public:
         bool equal = Token::Equal( other, inValue );
         if ( !equal ) return false;
         
-        equal &= ( type == other->type );
+        // We'll just pretend labels are numbers (bcuz day r)
+        equal &= ( type == other->type || other->type == LABEL );
         if ( !equal ) return false;
         
         // We'll just pretend this doesn't exist
@@ -249,6 +251,7 @@ public:
         if (
             subTokens.size() &&
             !( subTokens[0]->type == NUMBER ||
+               subTokens[0]->type == LABEL  ||
                subTokens[0]->type == SEPARATOR )
         ) {
             PrintError( "Instruction has invalid argument!", lineNumber );
@@ -455,10 +458,11 @@ public:
         bool equal = Token::Equal( other, inValue );
         if ( !equal ) return false;
         
-        equal &= ( type == other->type );
+        // We'll just pretend labels are numbers (bcuz day r)
+        equal &= ( type == other->type || other->type == NUMBER );
         if ( !equal ) return false;
         
-        if ( inValue )
+        if ( inValue && other->type == LABEL )
             equal &= ( value == ( (Label*)other )->value );
 
         return equal;

@@ -29,6 +29,7 @@
 #include <vector>
 #include <unordered_map>
 
+#include "stdio.h"
 #include "stdint.h"
 
 
@@ -47,12 +48,14 @@ public:
     // Appends a byte to the buffer
     void Append( uint8_t byte ) {
         data.push_back( byte );
+        // PrintBytes();
     }
 
     // Appends a word to the buffer
     void Append( uint16_t word ) {
-        data.push_back( word & 0xFF );
-        data.push_back( word >> 8 );
+        data.push_back( (uint8_t)( word & 0xFF ) );
+        data.push_back( (uint8_t)( word >> 8 ) );
+        // PrintBytes();
     }
 
     // Appends a string of bytes to the buffer
@@ -69,8 +72,8 @@ public:
     }
 
     // Returns the raw byte buffer
-    const uint8_t *buffer() const {
-        return data.data();
+    uint8_t *buffer() const {
+        return (uint8_t*)data.data();
     }
 
     // Returns the buffer size
@@ -80,6 +83,19 @@ public:
 
 private:
     std::vector<uint8_t> data;
+
+    #ifdef DEBUG
+
+    // Prints a Bytes object's bytes
+    void PrintBytes() {
+        std::cout << "Bytes( ";
+        for ( auto byte : data )
+            printf("%02X ", byte);
+        
+        std::cout << ")\n";
+    }
+
+    #endif
 };
 
 // Byte chunk storage class
@@ -172,17 +188,21 @@ public:
 
 // Construct the chunks into the buffer with the correct metadata
 void Object::Build() {
-    // Each metadata entry is 3 bytes + the 1 end byte
+    // Each metadata entry is 3 bytes, the first byte gives the length of the
+    // metadata section
     // This is kinda like a very basic file system to guide the linker
+    Append( (uint8_t)0 ); // Metadata size
     uint16_t pointer = chunks.size() * OBJECT_METADATA_ENTRY_LENGTH + 1;
     for ( Chunk *chunk : chunks ) {
+        // Each entry contains the chunk type (u8)
         Append( (uint8_t)chunk->type );
+        // And a pointer (u16) to that chunk
         Append( pointer );
 
         chunk->Build();
         pointer += (uint16_t)chunk->size(); // Increment to the next chunk
     }
-    Append( (uint8_t)OBJECT_METADATA_END );
+    buffer()[0] = (uint8_t)size();
 
     // Actually add the data
     for ( Chunk *chunk : chunks ) {
