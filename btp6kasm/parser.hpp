@@ -361,6 +361,10 @@ void Parser::ParseLinkerDirective( token::LinkerDirective *token ) {
             token::Number *number = (token::Number*)token->subTokens[0];
             output.header->origin = number->value;
         }
+        else if ( token->value == ".data" ) {
+            token::Number *number = (token::Number*)token->subTokens[0];
+            output.header->dataOrigin = number->value;
+        }
     }
 }
 

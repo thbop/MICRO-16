@@ -1,4 +1,5 @@
 .org 2000h
+.data 3000h
 
 
 main:

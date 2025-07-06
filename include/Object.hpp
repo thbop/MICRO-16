@@ -125,7 +125,8 @@ public:
 // Also includes external references
 class Header : public Chunk {
 public:
-    uint16_t origin; // .org
+    uint16_t origin;     // .org
+    uint16_t dataOrigin; // .data
 
     Header() {
         type = HEADER;
@@ -134,6 +135,7 @@ public:
     // Build the header
     void Build() override {
         Append( origin );
+        Append( dataOrigin );
     }
 };
 
