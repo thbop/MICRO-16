@@ -78,7 +78,7 @@ std::vector<std::string> registers = {
 
 // Linker directives
 std::vector<std::string> linkerDirectives = {
-    ".org", ".data"
+    ".org", ".data", "extern"
 };
 
 // Separators
@@ -394,7 +394,11 @@ public:
     }
     // Instruction validator
     bool Validate( int lineNumber ) override {
-        if ( subTokens.size() != 1 && subTokens[0]->type != NUMBER ) {
+        if (
+            subTokens.size() != 1 &&
+            ( subTokens[0]->type != NUMBER ||
+              subTokens[0]->type != LABEL )
+        ) {
             PrintError( "Linker directive has invalid argument!", lineNumber );
             return false;
         }

@@ -14,6 +14,6 @@ main:
     jmp main
 
 
-
+extern beef
 beef:
     pusha
