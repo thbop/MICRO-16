@@ -1,19 +1,12 @@
 .org 2000h
 .data 3000h
 
-
 main:
-    ; Setup stack
     lda 0x200
     tass       ; Stack Segment = 0x200
 
-    ldb [[main]+0]
+    lda 0xEFBE ; Load BE EF
 
-    lda 0xEFBE ; push BE EF to the stack
-    pusha
-    jmp main
-
-
-extern beef
-beef:
-    pusha
+.loop:
+    pusha      ; Fill the stack with BE EF
+    jmp .loop

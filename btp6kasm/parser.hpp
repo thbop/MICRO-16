@@ -210,70 +210,6 @@ int GetAddressingModeOffset( uint16_t mode ) {
     return 0;
 }
 
-// Gets an immediate value x
-// Assumes token is valid
-// TODO: Make this less bad
-uint16_t GetIm( token::Instruction *token ) {
-    // If immediate is a label, its value to zero and fix it in post
-    // (the linker)
-    if ( token->subTokens[0]->type == token::LABEL )
-        return 0;
-    return ( (token::Number*)token->subTokens[0] )->value;
-}
-
-// Gets an immediate offset [bp+x] or [x]
-// Assumes token is valid
-// TODO: Make this less bad
-uint16_t GetOffsetIm( token::Instruction *token ) {
-    // If immediate is a label, its value to zero and fix it in post
-    // (the linker)
-    if (
-        token->subTokens[0]->subTokens[0]->type == token::LABEL ||
-        token->subTokens[0]->subTokens[2]->type == token::LABEL
-    )
-        return 0;
-
-    if ( token->subTokens[0]->subTokens[0]->type == token::NUMBER ) {
-        return ( (token::Number*)token->subTokens[0]->subTokens[0] )->value;
-    }
-    return ( (token::Number*)token->subTokens[0]->subTokens[2] )->value;
-}
-
-// Gets an immediate offset [[bp+x]+y] or [[x]+y]
-// Assumes token is valid
-// TODO: Make this less bad
-uint8_t GetPointerOffsetIm( token::Instruction *token ) {
-    // If immediate is a label, its value to zero and fix it in post
-    // (the linker)
-    if (
-        token->subTokens[0]->subTokens[0]->subTokens[0]->type == token::LABEL
-        ||
-        token->subTokens[0]->subTokens[2]->type == token::LABEL
-    )
-        return 0;
-
-
-    if (
-        token->subTokens[0]->subTokens[0]->subTokens[0]->type == token::NUMBER
-    ) {
-        return ( (token::Number*)token->subTokens[0]->
-                    subTokens[0]->subTokens[0] )->value;
-    }
-    return ( (token::Number*)token->subTokens[0]->
-                subTokens[0]->subTokens[2] )->value;
-}
-
-// Gets an immediate pointer [[bp+x]+y] or [[x]+y]
-// Assumes token is valid
-// TODO: Make this less bad
-uint16_t GetPointerImOffset( token::Instruction *token ) {
-    // If immediate is a label, its value to zero and fix it in post
-    // (the linker)
-    if ( token->subTokens[0]->subTokens[2]->type == token::LABEL )
-        return 0;
-
-    return ( (token::Number*)token->subTokens[0]->subTokens[2] )->value;
-}
 
 }
 
@@ -314,6 +250,8 @@ private:
     obj::Object output;
     std::ofstream file;
 
+    // Debug ------------------------------------------------------------------
+
     #ifdef DEBUG
     // Prints a scope from the lexer
     void PrintScope( Scope *scope, int indent );
@@ -321,6 +259,25 @@ private:
     // Prints a non-scope line from the lexer
     void PrintLine( Line *line, int indent );
     #endif
+
+    // Get immediate values ---------------------------------------------------
+
+    // Gets an immediate value x
+    uint16_t GetIm( token::Instruction *token );
+
+    // Gets an immediate offset [bp+x] or [x]
+    uint16_t GetOffsetIm( token::Instruction *token );
+
+    // Gets an immediate offset [[bp+x]+y] or [[x]+y]
+    uint8_t GetPointerOffsetIm( token::Instruction *token );
+
+    // Gets an immediate pointer [[bp+x]+y] or [[x]+y]
+    uint16_t GetPointerImOffset( token::Instruction *token );
+
+    // Sends immediate label data to the appropriate label
+    void SendImLabelData( token::Label *token, obj::ImLabelData data );
+
+    // Parsing ----------------------------------------------------------------
 
     // Parses a scope
     void ParseScope( Scope *scope );
@@ -330,6 +287,9 @@ private:
 
     // Parses a linker directive
     void ParseLinkerDirective( token::LinkerDirective *token );
+
+    // Parses a label
+    void ParseLabel( token::Label *token );
 
     // Parses line of code
     void ParseCode( token::Instruction *token );
@@ -354,21 +314,121 @@ void Parser::PrintScope( Scope *scope, int indent ) {
 }
 #endif
 
+// Gets an immediate value x
+// Assumes token is valid
+uint16_t Parser::GetIm( token::Instruction *token ) {
+    token::Token *t0 = token->subTokens[0];
+
+    // If immediate is a label, its value to zero and fix it in post
+    // (the linker)
+    if ( t0->type == token::LABEL ) {
+        SendImLabelData(
+            (token::Label*)t0,
+            { obj::ImLabelData::OFFSET, (uint16_t)output.code->size() }
+        );
+        return 0;
+    }
+
+    return ( (token::Number*)t0 )->value;
+}
+
+// Gets an immediate offset [bp+x] or [x]
+// Assumes token is valid
+uint16_t Parser::GetOffsetIm( token::Instruction *token ) {
+    token::Token *t0 = token->subTokens[0]->subTokens[0];
+    if ( t0->type == token::REGISTER )
+        t0 = token->subTokens[0]->subTokens[2];
+
+    // If immediate is a label, its value to zero and fix it in post
+    // (the linker)
+    if ( t0->type == token::LABEL ) {
+        SendImLabelData(
+            (token::Label*)t0,
+            { obj::ImLabelData::OFFSET, (uint16_t)output.code->size() }
+        );
+        return 0;
+    }
+
+    return ( (token::Number*)t0 )->value;
+}
+
+// Gets an immediate offset [[bp+x]+y] or [[x]+y]
+// Assumes token is valid
+uint8_t Parser::GetPointerOffsetIm( token::Instruction *token ) {
+    token::Token *t0 = token->subTokens[0]->subTokens[0]->subTokens[0];
+    if ( t0->type == token::REGISTER )
+        t0 = token->subTokens[0]->subTokens[2];
+
+    // If immediate is a label, its value to zero and fix it in post
+    // (the linker)
+    if ( t0->type == token::LABEL ) {
+        SendImLabelData(
+            (token::Label*)t0,
+            { obj::ImLabelData::OFFSET, (uint16_t)output.code->size() }
+        );
+        return 0;
+    }
+
+    return ( (token::Number*)t0 )->value;
+}
+
+// Gets an immediate pointer [[bp+x]+y] or [[x]+y]
+// Assumes token is valid
+uint16_t Parser::GetPointerImOffset( token::Instruction *token ) {
+    token::Token *t0 = token->subTokens[0]->subTokens[2];
+
+    // If immediate is a label, its value to zero and fix it in post
+    // (the linker)
+    if ( t0->type == token::LABEL ) {
+        SendImLabelData(
+            (token::Label*)t0,
+            { obj::ImLabelData::ABSOLUTE, (uint16_t)output.code->size() }
+        );
+        return 0;
+    }
+
+    return ( (token::Number*)t0 )->value;
+}
+
 // Parses a linker directive
 void Parser::ParseLinkerDirective( token::LinkerDirective *token ) {
+    token::Number *number =
+        dynamic_cast<token::Number*>( token->subTokens[0] );
+    
+    token::Label *label = dynamic_cast<token::Label*>( token->subTokens[0] );
+
     if ( !error ) {
-        if ( token->value == ".org" ) {
-            token::Number *number = (token::Number*)token->subTokens[0];
+        if ( token->value == ".org" && number != nullptr ) {
             output.header->origin = number->value;
         }
-        else if ( token->value == ".data" ) {
-            token::Number *number = (token::Number*)token->subTokens[0];
+        else if ( token->value == ".data" && number != nullptr ) {
             output.header->dataOrigin = number->value;
         }
-        else if ( token->value == "extern" ) {
-            
+        else if ( token->value == "extern" && label != nullptr ) {
+            if ( label->value[0] != '.' )
+                output.header->labels[label->value]->external = true;
+            else
+                std::cout << "ERROR: Cannot make sub-label \"" << label->value
+                    << "\" external!\n";
         }
     }
+}
+
+// Sends immediate label data to the appropriate label
+void Parser::SendImLabelData( token::Label *token, obj::ImLabelData data ) {
+    obj::Label *label =
+        output.header->GetLabelFromToken( (token::Label*)token );
+    
+    label->AppendIm( data );
+}
+
+// Parses a label
+void Parser::ParseLabel( token::Label *token ) {
+    obj::Label *label =
+        output.header->GetLabelFromToken( (token::Label*)token );
+
+    // Set the position of the label
+    label->position = (uint16_t)output.code->size();
 }
 
 // Parses line of code
@@ -420,20 +480,20 @@ void Parser::ParseCode( token::Instruction *token ) {
         // Add immediate values
         switch ( addressingMode ) {
             case ins::IM8:
-                output.code->Append( (uint8_t)ins::GetIm( token ) );
+                output.code->Append( (uint8_t)GetIm( token ) );
                 break;
             case ins::IM16:
-                output.code->Append( ins::GetIm( token ) );
+                output.code->Append( GetIm( token ) );
                 break;
             case ins::SOI:
             case ins::DOI:
-                output.code->Append( (uint8_t)ins::GetOffsetIm( token ) );
+                output.code->Append( (uint8_t)GetOffsetIm( token ) );
                 break;
         }
         if ( ( addressingMode & ( ins::SPOI | ins::DPOI ) ) )
-            output.code->Append( ins::GetPointerOffsetIm( token ) );
+            output.code->Append( GetPointerOffsetIm( token ) );
         if ( ( addressingMode & ( ins::SPIO | ins::DPIO ) ) )
-            output.code->Append( ins::GetPointerImOffset( token ) );
+            output.code->Append( GetPointerImOffset( token ) );
     }
 }
 
@@ -448,6 +508,9 @@ void Parser::ParseLine( Line *line ) {
             case token::INSTRUCTION:
                 ParseCode( (token::Instruction*)token );
                 break;
+            case token::LABEL:
+                ParseLabel( (token::Label*)token );
+                break;
         }
     }
 }
@@ -456,11 +519,11 @@ void Parser::ParseLine( Line *line ) {
 void Parser::ParseScope( Scope *scope ) {
     if ( !error ) {
         for ( auto it : scope->lines ) {
+            ParseLine( it );
+
             Scope *subScope = dynamic_cast<Scope*>( it );
             if ( subScope != nullptr )
                 ParseScope( subScope );
-            else
-                ParseLine( it );
         }
     }
 }
