@@ -26,16 +26,16 @@
 enum Instructions {
     // LDA - Load Accumulator
     INS_LDA_IM  = 0xA0, // Immediate
-    INS_LDA_SO  = 0xA1, // Stack offset [SS:BP+X]
-    INS_LDA_SPO = 0xA2, // Stack pointer offset [[SS:BP+X]+Y]
-    INS_LDA_DO  = 0xA3, // Data offset [DS:X]
-    INS_LDA_DPO = 0xA4, // Data pointer offset [[DS:X]+Y]
+    INS_LDA_SO  = 0xA1, // Stack offset [SS:BP+im] (im = immediate)
+    INS_LDA_SPO = 0xA2, // Stack pointer offset [[SS:BP+im]+im]
+    INS_LDA_DO  = 0xA3, // Data offset [DS:im]
+    INS_LDA_DPO = 0xA4, // Data pointer offset [[DS:im]+im]
 
     // STA - Store Accumulator
-    INS_STA_SO  = 0xA5, // [SS:BP+X]     = A
-    INS_STA_SPO = 0xA6, // [[SS:BP+X]+Y] = A
-    INS_STA_DO  = 0xA7, // [DS:X]        = A
-    INS_STA_DPO = 0xA8, // [[DS:X]+Y]    = A
+    INS_STA_SO  = 0xA5, // [SS:BP+im]      = A
+    INS_STA_SPO = 0xA6, // [[SS:BP+im]+im] = A
+    INS_STA_DO  = 0xA7, // [DS:im]         = A
+    INS_STA_DPO = 0xA8, // [[DS:im]+im]    = A
 
     // TA-X - Transfer Accumulator to X
     INS_TAB     = 0xA9, // B  = A
@@ -47,10 +47,10 @@ enum Instructions {
 
     // LDB - Load Base
     INS_LDB_IM  = 0xB0, // B = Im
-    INS_LDB_SO  = 0xB1, // B = [SS:BP+x] (x = immediate)
-    INS_LDB_SPO = 0xB2, // B = [[SS:BP+x]+y] (x, y = immediate)
-    INS_LDB_DO  = 0xB3, // B = [DS:x]
-    INS_LDB_DPO = 0xB4, // B = [[DS:x]+y]
+    INS_LDB_SO  = 0xB1, // B = [SS:BP+X]
+    INS_LDB_SPO = 0xB2, // B = [[SS:BP+X]+Y]
+    INS_LDB_DO  = 0xB3, // B = [DS:X]
+    INS_LDB_DPO = 0xB4, // B = [[DS:X]+Y]
 
     // STB - Store Base
     INS_STB_SO  = 0xB5, // [SS:BP+X]     = B
@@ -68,16 +68,16 @@ enum Instructions {
 
     // LDX - Load X-index
     INS_LDX_IM  = 0x80, // Immediate
-    INS_LDX_SO  = 0x81, // X = [SS:BP+x] (x = immediate)
-    INS_LDX_SPO = 0x82, // X = [[SS:BP+x]+Y]
-    INS_LDX_DO  = 0x83, // X = [DS:x]
-    INS_LDX_DPO = 0x84, // X = [[DS:x]+Y]
+    INS_LDX_SO  = 0x81, // X = [SS:BP+im]
+    INS_LDX_SPO = 0x82, // X = [[SS:BP+im]+Y]
+    INS_LDX_DO  = 0x83, // X = [DS:im]
+    INS_LDX_DPO = 0x84, // X = [[DS:im]+Y]
 
     // STX - Store X-index
-    INS_STX_SO  = 0x85, // [SS:BP+x]     = X
-    INS_STX_SPO = 0x86, // [[SS:BP+x]+Y] = X
-    INS_STX_DO  = 0x87, // [DS:x]        = X
-    INS_STX_DPO = 0x88, // [[DS:x]+Y]    = X
+    INS_STX_SO  = 0x85, // [SS:BP+im]     = X
+    INS_STX_SPO = 0x86, // [[SS:BP+im]+Y] = X
+    INS_STX_DO  = 0x87, // [DS:im]        = X
+    INS_STX_DPO = 0x88, // [[DS:im]+Y]    = X
 
     // TX-X - Transfer X-index to X
     INS_TXA     = 0x89, // A  = X
@@ -90,15 +90,15 @@ enum Instructions {
     // LDY - Load Y-pointer
     INS_LDY_IM  = 0x90, // Y = Im
     INS_LDY_SO  = 0x91, // Y = [SS:BP+X]
-    INS_LDY_SPO = 0x92, // Y = [[SS:BP+X]+y] (y = immediate)
+    INS_LDY_SPO = 0x92, // Y = [[SS:BP+X]+im]
     INS_LDY_DO  = 0x93, // Y = [DS:X]
-    INS_LDY_DPO = 0x94, // Y = [[DS:X]+y]
+    INS_LDY_DPO = 0x94, // Y = [[DS:X]+im]
 
     // STY - Store Y-pointer
-    INS_STY_SO  = 0x95, // [SS:BP+X]     = Y
-    INS_STY_SPO = 0x96, // [[SS:BP+X]+y] = Y
-    INS_STY_DO  = 0x97, // [DS:X]        = Y
-    INS_STY_DPO = 0x98, // [[DS:X]+y]    = Y
+    INS_STY_SO  = 0x95, // [SS:BP+X]      = Y
+    INS_STY_SPO = 0x96, // [[SS:BP+X]+im] = Y
+    INS_STY_DO  = 0x97, // [DS:X]         = Y
+    INS_STY_DPO = 0x98, // [[DS:X]+im]    = Y
 
     // TY-X - Transfer Y-pointer to X
     INS_TYA     = 0x99, // A  = Y

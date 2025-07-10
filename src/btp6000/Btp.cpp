@@ -37,16 +37,16 @@ void BetterThanPico::Execute() {
     switch ( instruction ) {
         // LDA
         case INS_LDA_IM:  A.value = LoadImmediate();                    break;
-        case INS_LDA_SO:  A.value = LoadOffset( SS, BP + X );           break;
-        case INS_LDA_SPO: A.value = LoadPointerOffset( SS, BP + X, Y ); break;
-        case INS_LDA_DO:  A.value = LoadOffset( DS, X );                break;
-        case INS_LDA_DPO: A.value = LoadPointerOffset( DS, X, Y );      break;
+        case INS_LDA_SO:  A.value = LoadOffsetIm( SS, BP );             break;
+        case INS_LDA_SPO: A.value = LoadPointerImOffsetIm( SS, BP, 0 ); break;
+        case INS_LDA_DO:  A.value = LoadOffsetIm( DS, 0 );              break;
+        case INS_LDA_DPO: A.value = LoadPointerImOffsetIm( DS, 0, 0 );  break;
 
         // STA
-        case INS_STA_SO:  StoreOffset( SS, BP + X, A.value );           break;
-        case INS_STA_SPO: StorePointerOffset( SS, BP + X, Y, A.value ); break;
-        case INS_STA_DO:  StoreOffset( DS, X, A.value );                break;
-        case INS_STA_DPO: StorePointerOffset( DS, X, Y, A.value );      break;
+        case INS_STA_SO:  StoreOffsetIm( SS, BP, A.value );             break;
+        case INS_STA_SPO: StorePointerImOffsetIm( SS, BP, 0, A.value ); break;
+        case INS_STA_DO:  StoreOffsetIm( DS, 0, A.value );              break;
+        case INS_STA_DPO: StorePointerImOffsetIm( DS, 0, 0, A.value );  break;
 
         // TA-X
         case INS_TAB:     B.value = A.value;                            break;
@@ -58,16 +58,16 @@ void BetterThanPico::Execute() {
 
         // LDB
         case INS_LDB_IM:  B.value = LoadImmediate();                    break;
-        case INS_LDB_SO:  B.value = LoadOffsetIm( SS, BP );             break;
-        case INS_LDB_SPO: B.value = LoadPointerImOffsetIm( SS, BP, 0 ); break;
-        case INS_LDB_DO:  B.value = LoadOffsetIm( DS, 0 );              break;
-        case INS_LDB_DPO: B.value = LoadPointerImOffsetIm( DS, 0, 0 );  break;
+        case INS_LDB_SO:  B.value = LoadOffset( SS, BP + X );           break;
+        case INS_LDB_SPO: B.value = LoadPointerOffset( SS, BP + X, Y ); break;
+        case INS_LDB_DO:  B.value = LoadOffset( DS, X );                break;
+        case INS_LDB_DPO: B.value = LoadPointerOffset( DS, X, Y );      break;
 
         // STB
-        case INS_STB_SO:  StoreOffsetIm( SS, BP, B.value );             break;
-        case INS_STB_SPO: StorePointerImOffsetIm( SS, BP, 0, B.value ); break;
-        case INS_STB_DO:  StoreOffsetIm( DS, 0, B.value );              break;
-        case INS_STB_DPO: StorePointerImOffsetIm( DS, 0, 0, B.value );  break;
+        case INS_STB_SO:  StoreOffset( SS, BP + X, B.value );           break;
+        case INS_STB_SPO: StorePointerOffset( SS, BP + X, Y, B.value ); break;
+        case INS_STB_DO:  StoreOffset( DS, X, B.value );                break;
+        case INS_STB_DPO: StorePointerOffset( DS, X, Y, B.value );      break;
 
         // TB-X
         case INS_TBA:     A.value = B.value;                            break;

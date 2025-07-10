@@ -83,8 +83,8 @@ struct Info {
 // Instructions
 const std::unordered_map<std::string, Info> instructions = {
     // Accumulator stuff
-    { "lda",  { INS_LDA_IM, IM16 | SO | SPO | DO | DPO } },
-    { "sta",  { INS_STA_SO - 1, SO | SPO | DO | DPO } },
+    { "lda",  { INS_LDA_IM, IM16 | SOI | SPIOI | DOI | DPIOI } },
+    { "sta",  { INS_STA_SO - 1, SOI | SPIOI | DOI | DPIOI } },
     { "tab",  { INS_TAB, NONE } },
     { "tax",  { INS_TAX, NONE } },
     { "tay",  { INS_TAY, NONE } },
@@ -93,8 +93,8 @@ const std::unordered_map<std::string, Info> instructions = {
     { "tads", { INS_TADS, NONE } },
 
     // Base stuff
-    { "ldb",  { INS_LDB_IM, IM16 | SOI | SPIOI | DOI | DPIOI } },
-    { "stb",  { INS_STB_SO - 1, SOI | SPIOI | DOI | DPIOI } },
+    { "ldb",  { INS_LDB_IM, IM16 | SO | SPO | DO | DPO } },
+    { "stb",  { INS_STB_SO - 1, SO | SPO | DO | DPO } },
     { "tba",  { INS_TBA, NONE } },
     { "tbx",  { INS_TBX, NONE } },
     { "tby",  { INS_TBY, NONE } },
