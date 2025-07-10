@@ -49,7 +49,8 @@ constexpr int
     PALETTE_SIZE             = 1 + PALETTE_ENTRY_SIZE * PALETTE_ENTRY_COUNT,
 
     // Memory locations
-    SPRITESHEET              = 0x3000,
+    MEMORY_START             = 0x3000,
+    SPRITESHEET              = MEMORY_START,
     NAMETABLE0               =
         SPRITESHEET + SPRITESHEET_SPRITE_COUNT * SPRITE_SIZE,
     NAMETABLE1               = NAMETABLE0 + NAMETABLE_SIZE,
@@ -77,31 +78,6 @@ public:
     // Sets the memory just like the CPU
     void SetMemory( Bob3k *memory ) {
         bob = memory;
-
-        // Hard coded sprite
-        bob->Write( SPRITESHEET + 0,  0b01000010 );
-        bob->Write( SPRITESHEET + 1,  0b10100101 );
-        bob->Write( SPRITESHEET + 2,  0b00000000 );
-        bob->Write( SPRITESHEET + 3,  0b00011000 );
-        bob->Write( SPRITESHEET + 4,  0b00000000 );
-        bob->Write( SPRITESHEET + 5,  0b00000000 );
-        bob->Write( SPRITESHEET + 6,  0b00000000 );
-        bob->Write( SPRITESHEET + 7,  0b00000000 );
-
-        bob->Write( SPRITESHEET + 8,  0b00000000 );
-        bob->Write( SPRITESHEET + 9,  0b00000000 );
-        bob->Write( SPRITESHEET + 10, 0b00000000 );
-        bob->Write( SPRITESHEET + 11, 0b00000000 );
-        bob->Write( SPRITESHEET + 12, 0b00000000 );
-        bob->Write( SPRITESHEET + 13, 0b00000000 );
-        bob->Write( SPRITESHEET + 14, 0b00000000 );
-        bob->Write( SPRITESHEET + 15, 0b00000000 );
-
-        // Hardcoded palette
-        bob->Write( PALETTE + 0, BLACK );
-
-        bob->Write( PALETTE + 2, WHITE );
-        bob->Write( PALETTE + 3, PEACH );
     }
 
     // Given sprite coordinates and a palette, renders a sprite at the given
@@ -156,7 +132,7 @@ void PixelGraphicsUnit::RenderSprite(
             if ( paletteIndex == 0 )
                 colorIndex = bob->Read( PALETTE );
             else
-                colorIndex = bob->Read( paletteAddress + paletteIndex );
+                colorIndex = bob->Read( paletteAddress + paletteIndex - 1 );
 
             SetPixel( colorIndex, x + i, y + j );
         }

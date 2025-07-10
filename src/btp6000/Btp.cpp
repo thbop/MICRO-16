@@ -32,8 +32,8 @@ void BetterThanPico::Execute() {
         "INS: %02X IP: %02X A: %02X B: %02X X: %02X Y: %02X\n",
         instruction, IP, A.value, B.value, X, Y
     );
-
     #endif
+
     switch ( instruction ) {
         // LDA
         case INS_LDA_IM:  A.value = LoadImmediate();                    break;
@@ -144,6 +144,6 @@ void BetterThanPico::DumpMemory( const char *outputFile ) {
 
     file.close();
 }
+#endif
 
 }
-#endif
