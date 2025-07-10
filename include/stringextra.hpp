@@ -36,6 +36,16 @@ std::string strip( const std::string &str ) {
     auto end = std::find_if_not( str.rbegin(), str.rend(), ::isspace ).base();
 
     return ( start < end ) ? std::string( start, end ) : std::string();
+
+}
+
+// Counts the number of instances of a certain character
+int count_char( const std::string &str, char character ) {
+    int count = 0;
+    for ( char c : str ) {
+        count += ( character == c );
+    }
+    return count;
 }
 
 // Returns true if the string contains only a base10 integer

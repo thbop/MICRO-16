@@ -55,6 +55,11 @@ public:
         *(uint16_t*)( buffer + address ) = value;
     }
 
+    // Raw data access
+    uint8_t *data() const {
+        return (uint8_t*)buffer;
+    }
+
 private:
     uint8_t buffer[BOB3K_SIZE];
 

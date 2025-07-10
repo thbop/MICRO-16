@@ -27,6 +27,7 @@
 // Essentially the editor + linker
 
 #include "../MiDi16/MicroDisplay16.hpp"
+#include "Gui.hpp"
 
 // Cartlink editor
 class Editor {
@@ -34,13 +35,15 @@ public:
     // Empty constructor
     Editor() {}
     // Constructor
-    Editor( MiDi16::Surface *screen ) : screen( screen ) {
-        font = MiDi16::Surface::FromImage( "resources/font.png" );
+    Editor( MiDi16::Window *window, MiDi16::Surface *screen )
+        : window( window ), screen( screen ) {
+        textbox = new gui::TextBox( window, screen, { 1, 8, 126, 120 } );
+
     }
 
     // Clean up resources
     ~Editor() {
-        delete font;
+        delete textbox;
     }
 
     // Update loop
@@ -48,12 +51,13 @@ public:
 
     // Draw loop
     void Draw() {
-        screen->Blit( font, 0, 0 );
+        textbox->Run();
     }
 
 private:
+    MiDi16::Window *window;  // Managed by Micro16 class
     MiDi16::Surface *screen; // Managed by Micro16 class
-    MiDi16::Surface *font;
+    gui::TextBox *textbox;
 };
 
 #endif

@@ -32,7 +32,7 @@
 
 #include "stdint.h"
 
-#include "stringextra.hpp"
+#include "../include/stringextra.hpp"
 
 #include "settings.hpp"
 
@@ -78,11 +78,11 @@ std::vector<std::string> registers = {
 
 // Linker directives
 std::vector<std::string> linkerDirectives = {
-    ".org",
+    ".org", ".data", "extern"
 };
 
 // Separators
-std::string separators = "+[]";
+std::string separators = "+[]:";
 
 
 // Abstract token class
@@ -116,6 +116,7 @@ public:
         
         for ( int i = 0; i < (int)subTokens.size(); i++ ) {
             equal &= subTokens[i]->Equal( other->subTokens[i], inValue );
+            if ( !equal ) return false;
         }
 
         return equal;
@@ -165,7 +166,8 @@ public:
         bool equal = Token::Equal( other, inValue );
         if ( !equal ) return false;
         
-        equal &= ( type == other->type );
+        // We'll just pretend labels are numbers (bcuz day r)
+        equal &= ( type == other->type || other->type == LABEL );
         if ( !equal ) return false;
         
         // We'll just pretend this doesn't exist
@@ -249,6 +251,7 @@ public:
         if (
             subTokens.size() &&
             !( subTokens[0]->type == NUMBER ||
+               subTokens[0]->type == LABEL  ||
                subTokens[0]->type == SEPARATOR )
         ) {
             PrintError( "Instruction has invalid argument!", lineNumber );
@@ -391,7 +394,11 @@ public:
     }
     // Instruction validator
     bool Validate( int lineNumber ) override {
-        if ( subTokens.size() != 1 && subTokens[0]->type != NUMBER ) {
+        if (
+            subTokens.size() != 1 &&
+            ( subTokens[0]->type != NUMBER ||
+              subTokens[0]->type != LABEL )
+        ) {
             PrintError( "Linker directive has invalid argument!", lineNumber );
             return false;
         }
@@ -419,6 +426,57 @@ public:
     void Print( int indent ) override {
         for ( int i = 0; i < indent; i++ ) std::cout << "  ";
         std::cout << "LinkerDirective(" << value << ")\n";
+        Token::Print( indent + 1 );
+    }
+    #endif
+};
+
+// Label token class
+class Label : public Token {
+public:
+    std::string value;
+
+    // Constructors
+    Label() {
+        type = LABEL;
+    }
+    Label( std::string &value ) : Label() {
+        this->value = value;
+    }
+    // Label validator
+    bool Validate( int lineNumber ) override {
+        if (
+            subTokens.size() == 1           &&
+            subTokens[0]->type == SEPARATOR &&
+            ( (Separator*)subTokens[0] )->value == ':'
+        )
+            return true;
+        
+        std::cout << "Label must have only a colon!\n";
+        return false;
+    }
+
+    // Checks if a token and its subtokens are equal in type and in value (if
+    // specified)
+    bool Equal( Token *other, bool inValue=true ) override {
+        bool equal = Token::Equal( other, inValue );
+        if ( !equal ) return false;
+        
+        // We'll just pretend labels are numbers (bcuz day r)
+        equal &= ( type == other->type || other->type == NUMBER );
+        if ( !equal ) return false;
+        
+        if ( inValue && other->type == LABEL )
+            equal &= ( value == ( (Label*)other )->value );
+
+        return equal;
+    }
+
+    #ifdef DEBUG
+    // Prints the linker directive and its children
+    void Print( int indent ) override {
+        for ( int i = 0; i < indent; i++ ) std::cout << "  ";
+        std::cout << "Label(" << value << ")\n";
         Token::Print( indent + 1 );
     }
     #endif
@@ -495,10 +553,8 @@ token::Token *Line::NewToken( std::string &rawToken ) {
     )
         return new token::Separator( rawToken[0] );
     
-    std::cout << "Unknown: " << rawToken << "\n";
-
-    // Unknown
-    return new token::Token();
+    // Otherwise, probably treat it like a label
+    return new token::Label( rawToken );
 }
 
 // Evaluates a raw token string and adds a new token
@@ -525,9 +581,16 @@ void Line::Lex() {
 
     for ( int i = 0; i < (int)rawLine.size(); i++ ) {
         char character = rawLine[i];
-        // If space -----------------------------------------------------------
-        if ( std::isspace( character ) ) {
+        // If comment ---------------------------------------------------------
+        if ( character == ';' )
+            break;
+        // If space or colon --------------------------------------------------
+        if ( character == ' ' || character == ':' ) {
             AddToken( rawToken );
+            if ( character == ':' ) {
+                std::string colon = ":"; // Thanks C++ and my bad design
+                AddToken( colon );
+            }
             rawToken = std::string();
             continue;
         // If separator -------------------------------------------------------
@@ -572,6 +635,14 @@ public:
 
     // Constructors
     Scope() {}
+
+    // From a line
+    // **WARNING** Leaves the line unusable
+    Scope( Line *line ) {
+        number = line->number;
+        rawLine = line->rawLine;
+        tokenStack.swap( line->tokenStack );
+    }
     
     // Inherit Line constructor
     Scope( std::string line, int lineNumber ) : Line( line, lineNumber ) {}
@@ -583,16 +654,17 @@ public:
     }
 
     // Allocate and add a line to the list
-    void Add( Line *line ) {
-        // TODO: Probably something to test if the line is really a scope
+    Line *Add( Line *line ) {
+
         lines.push_back( line );
+        return line;
     }
 };
 
 // Takes raw assembly code and makes it managable for the parser
 class Lexer {
 public:
-    Scope scope;
+    std::vector<Scope*> scopeStack;
 
     // Default constructor
     Lexer() {}
@@ -604,32 +676,103 @@ public:
         if ( !file.is_open() )
             std::cout << "File \"" << settings->inputFile << "\" either does "
                 "not exist or cannot be opened.\n";
+        
+        scopeStack.push_back( new Scope() );
+    }
+
+    // Destructor
+    ~Lexer() {
+        delete scopeStack.back();
+
+        // Close the file
+        if ( file.is_open() )
+            file.close();
     }
 
     // Begin lexing
     void Evaluate();
 
-    // Close the file
-    ~Lexer() {
-        if ( file.is_open() )
-            file.close();
-    }
 
 private:
     std::ifstream file;
+
+    // Deals with label scopes
+    void IncrementScope( Scope *scope );
+
+    // Test if the line is really a scope
+    // WARNING: Deletes the Line if it is a scope
+    Scope *IsScope( Line *line ) {
+        if ( line->tokenStack.top()->type == token::LABEL ) {
+            Scope *scope = new Scope( line );
+            delete line;
+            return scope;
+        }
+        return nullptr;
+    }
 };
+
+// Deals with label scopes
+void Lexer::IncrementScope( Scope *scope ) {
+    token::Label *label =
+        dynamic_cast<token::Label*>( scope->tokenStack.top() );
+
+    if ( label != nullptr ) {
+        if ( label->value[0] == '.' ) { // Subscope
+            switch ( scopeStack.size() ) {
+                case 1: // If we're trying to make a subscope from global scope
+                    std::cout << "Invalid sublabel \"" << label->value
+                        << "\" on line " << scope->number << "! "
+                        "Needs parent label.\n";
+                    return;
+                case 2:
+                    scopeStack.push_back( scope );
+                    break;
+                case 3:
+                    scopeStack.data()[scopeStack.size() - 1] = scope;
+                    break;
+            }
+        }
+        else { // Scope
+            switch ( scopeStack.size() ) {
+                case 1:
+                    scopeStack.push_back( scope );
+                    break;
+                case 2:
+                    scopeStack.data()[scopeStack.size() - 1] = scope;
+                    break;
+                case 3:
+                    scopeStack.pop_back();
+                    scopeStack.data()[scopeStack.size() - 1] = scope;
+                    break;
+            }
+        }
+    }
+
+}
 
 // Begin lexing
 void Lexer::Evaluate() {
-    std::string line;
+    std::string rawLine;
     int lineNumber = 0;
-    while ( std::getline( file, line ) ) {
+    while ( std::getline( file, rawLine ) ) {
         lineNumber++;
 
-        line = stringextra::strip( line );
-        if ( !line.empty() )
-            scope.Add( new Line( line, lineNumber ) );
+        rawLine = stringextra::strip( rawLine );
+        if ( !( rawLine.empty() || rawLine[0] == ';' ) ) {
+            Line *line = new Line( rawLine, lineNumber );
+
+            if ( Scope *scope = IsScope( line ) ) {
+                IncrementScope( scope );
+                
+                scopeStack[scopeStack.size()-2]->Add( scope );
+            }
+            else
+                scopeStack.back()->Add( line );
+        }
     }
+
+    // Scopes do not totally just end, so return to global scope
+    scopeStack.resize(1);
 
     file.close();
 }

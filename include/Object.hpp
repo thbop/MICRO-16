@@ -29,7 +29,11 @@
 #include <vector>
 #include <unordered_map>
 
+#include "stdio.h"
 #include "stdint.h"
+
+#include "../btp6kasm/lexer.hpp"
+using namespace lex;
 
 
 #define OBJECT_METADATA_END          0xFF
@@ -47,12 +51,14 @@ public:
     // Appends a byte to the buffer
     void Append( uint8_t byte ) {
         data.push_back( byte );
+        // PrintBytes();
     }
 
     // Appends a word to the buffer
     void Append( uint16_t word ) {
-        data.push_back( word & 0xFF );
-        data.push_back( word >> 8 );
+        data.push_back( (uint8_t)( word & 0xFF ) );
+        data.push_back( (uint8_t)( word >> 8 ) );
+        // PrintBytes();
     }
 
     // Appends a string of bytes to the buffer
@@ -68,15 +74,33 @@ public:
         Append( (uint8_t*)bytes->buffer(), bytes->size() );
     }
 
+    // Appends a null-terminated string to the buffer
+    void Append( std::string &str ) {
+        Append( (uint8_t*)str.c_str(), str.size() + 1 );
+    }
+
     // Returns the raw byte buffer
-    const uint8_t *buffer() const {
-        return data.data();
+    uint8_t *buffer() const {
+        return (uint8_t*)data.data();
     }
 
     // Returns the buffer size
     size_t size() const {
         return data.size();
     }
+
+    #ifdef DEBUG
+
+    // Prints a Bytes object's bytes
+    void PrintBytes() {
+        std::cout << "Bytes( ";
+        for ( auto byte : data )
+            printf("%02X ", byte);
+        
+        std::cout << ")\n";
+    }
+
+    #endif
 
 private:
     std::vector<uint8_t> data;
@@ -104,12 +128,129 @@ public:
 
 };
 
+// Instruction labal data - data that an instruction sends to a label
+struct ImLabelData {
+    enum Type {
+        OFFSET,
+        ABSOLUTE,
+    };
+    uint8_t type;
+    uint16_t position; // Immediate position
+};
+
+// Labels are very similar to chunks, but are not the same
+class Label : public Chunk {
+public:
+    // Label specific data
+    std::string value = "";
+    uint16_t position = 0x0000;
+    bool external = false; // sub-labels cannot be external
+
+    // Constructors
+    Label() {
+        isGlobalLabel = true;
+    }
+    Label( std::string &label )
+        : value( label ) {}
+
+    // Free children
+    ~Label() {
+        for ( auto it : subLabels )
+            delete it.second;
+    }
+
+    // Getter + setter
+    Label *operator[]( std::string label ) {
+        // If we are requesting the global label
+        if ( label == "" )
+            return this;
+
+        // Ensure a label exists
+        try {
+            return subLabels.at( label );
+        }
+        catch ( ... ) {
+            subLabels[label] = new Label( label );
+
+        
+            return subLabels.at( label );
+        }
+    }
+
+    // Build the actual binary data
+    void Build() override;
+
+    // Append immediate label data
+    void AppendIm( ImLabelData &data ) {
+        imData.push_back( data );
+    }
+
+    // Insert actual label offsets/adresses into the parsed code
+    void CorrectImmediates( uint16_t origin, Bytes *code );
+
+private:
+    bool isGlobalLabel = false;
+    bool isSubLabel    = false;
+
+    // sub-labels cannot have sub-labels
+    std::unordered_map<std::string, Label*> subLabels;
+    std::vector<ImLabelData> imData;
+};
+
+// Build the actual binary data
+void Label::Build() {
+    if ( isGlobalLabel ) {
+        Append( (uint16_t)0x0000 ); // Size of label section
+
+        // Build and append external labels
+        for ( auto it : subLabels ) {
+            if ( it.second->external ) {
+                it.second->Build();
+                Append( it.second );
+            }
+        }
+
+        *(uint16_t*)buffer() = (uint16_t)size();
+    }
+    else {
+        // Individual label entry
+        Append( value );    // Label string
+        Append( position ); // Label binary position
+    }
+}
+
+// Insert actual label offsets/adresses into the parsed code
+void Label::CorrectImmediates( uint16_t origin, Bytes *code ) {
+    // Iterate through children
+    for ( auto it : subLabels )
+        it.second->CorrectImmediates( origin, code );
+    
+    if ( !isGlobalLabel ) {
+        for ( auto im : imData ) {
+            switch ( im.type ) {
+                case ImLabelData::OFFSET:
+                    code->buffer()[im.position] =
+                        (int8_t)( position - im.position - 1 );
+                    break;
+                case ImLabelData::ABSOLUTE:
+                    *(uint16_t*)( &code->buffer()[im.position] )
+                        = origin + position;
+                    break;
+            }
+        }
+    }
+}
+
 
 // Basic information about the whole file for the linker
 // Also includes external references
 class Header : public Chunk {
 public:
-    uint16_t origin; // .org
+    uint16_t origin;     // .org
+    uint16_t dataOrigin; // .data
+
+    Label labels;
+    std::string labelScope = ""; // Global (ik this is bad)
 
     Header() {
         type = HEADER;
@@ -118,8 +259,33 @@ public:
     // Build the header
     void Build() override {
         Append( origin );
+        Append( dataOrigin );
+
+        // Labels
+        labels.Build();
+        Append( &labels );
     }
+
+    // Returns a pointer to a label or sub-label from that label's token
+    Label *GetLabelFromToken( token::Label *token );
 };
+
+// Returns a pointer to a label or sub-label from that label's token
+Label *Header::GetLabelFromToken( token::Label *token ) {
+    Label *label;
+
+    if ( token->value[0] == '.' ) {
+        label =
+            ( *labels[labelScope] )
+            [token->value];
+    }
+    else {
+        label = labels[token->value];
+        labelScope = label->value;
+    }
+
+    return label;
+}
 
 // Instruction chunk
 class Code : public Chunk {
@@ -127,12 +293,6 @@ public:
     Code() {
         type = CODE;
     }
-
-    // Adds a label
-    void AddLabel() {}
-
-private:
-    std::unordered_map<std::string, uint16_t> labels;
 };
 
 // Data chunk does nothing special
@@ -172,17 +332,25 @@ public:
 
 // Construct the chunks into the buffer with the correct metadata
 void Object::Build() {
-    // Each metadata entry is 3 bytes + the 1 end byte
+    // Each metadata entry is 3 bytes, the first byte gives the length of the
+    // metadata section
     // This is kinda like a very basic file system to guide the linker
+    Append( (uint8_t)0 ); // Metadata size
     uint16_t pointer = chunks.size() * OBJECT_METADATA_ENTRY_LENGTH + 1;
     for ( Chunk *chunk : chunks ) {
+        // Each entry contains the chunk type (u8)
         Append( (uint8_t)chunk->type );
+        // And a pointer (u16) to that chunk
         Append( pointer );
 
         chunk->Build();
         pointer += (uint16_t)chunk->size(); // Increment to the next chunk
     }
-    Append( (uint8_t)OBJECT_METADATA_END );
+    buffer()[0] = (uint8_t)size();
+
+    // And correct immedate labels - this has to be run after the code chunk
+    // has been generated
+    header->labels.CorrectImmediates( header->origin, code );
 
     // Actually add the data
     for ( Chunk *chunk : chunks ) {

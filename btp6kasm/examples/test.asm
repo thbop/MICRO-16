@@ -1,4 +1,12 @@
-.org 6512h
+.org 2000h
+.data 3000h
 
-lda 0x12
-ldb [[bp+0x42]+0x54]
+main:
+    lda 0x200
+    tass       ; Stack Segment = 0x200
+
+    lda 0xEFBE ; Load BE EF
+
+.loop:
+    pusha      ; Fill the stack with BE EF
+    jmp .loop
