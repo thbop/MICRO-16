@@ -247,7 +247,6 @@ void Label::CorrectImmediates( uint16_t origin, Bytes *code ) {
 class Header : public Chunk {
 public:
     uint16_t origin;     // .org
-    uint16_t dataOrigin; // .data
 
     Label labels;
     std::string labelScope = ""; // Global (ik this is bad)
@@ -259,7 +258,6 @@ public:
     // Build the header
     void Build() override {
         Append( origin );
-        Append( dataOrigin );
 
         // Labels
         labels.Build();

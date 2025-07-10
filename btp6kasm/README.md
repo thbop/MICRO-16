@@ -36,7 +36,6 @@ Here is a table of the available chunk types:
 
 ```
 WORD origin      // Code origin (.org)
-WORD data origin // Data origin (.data)
 ```
 
 ### Code chunk

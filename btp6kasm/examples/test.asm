@@ -1,5 +1,4 @@
 .org 2000h
-.data 3000h
 
 main:
     lda 0x200

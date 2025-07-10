@@ -20,7 +20,7 @@
 * SOFTWARE.
 */
 
-#define DEBUG
+// #define DEBUG
 
 #include <iostream>
 #include <string>
@@ -43,7 +43,9 @@ int main( int argc, char **args ) {
 
     // Parse the lex structure
     parser::Parser parser( &lexer, &settings );
+    #ifdef DEBUG
     parser.PrintStructure();
+    #endif
     parser.Parse();
 
 

@@ -78,7 +78,7 @@ std::vector<std::string> registers = {
 
 // Linker directives
 std::vector<std::string> linkerDirectives = {
-    ".org", ".data", "extern"
+    ".org", "extern"
 };
 
 // Separators

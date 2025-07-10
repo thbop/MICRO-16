@@ -401,9 +401,6 @@ void Parser::ParseLinkerDirective( token::LinkerDirective *token ) {
         if ( token->value == ".org" && number != nullptr ) {
             output.header->origin = number->value;
         }
-        else if ( token->value == ".data" && number != nullptr ) {
-            output.header->dataOrigin = number->value;
-        }
         else if ( token->value == "extern" && label != nullptr ) {
             if ( label->value[0] != '.' )
                 output.header->labels[label->value]->external = true;
