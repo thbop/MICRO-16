@@ -23,6 +23,11 @@
 #ifndef BTP_HPP
 #define BTP_HPP
 
+#define BTP_DEBUG
+
+#include <fstream>
+
+#include "stdio.h"
 #include "stdint.h"
 
 #include "../bob3000/Bob.hpp"
@@ -99,6 +104,12 @@ namespace btp {
         // Executes one instruction
         void Execute();
 
+        #ifdef BTP_DEBUG
+        // Dumps all the memory to a file
+        void DumpMemory( const char *outputFile );
+
+        #endif
+
     private:
         Bob3k *memory;
 
@@ -113,7 +124,7 @@ namespace btp {
         //     FF0:0FF = FFFF
         //     FFF:FFF = 0FEF
         uint16_t CalculateAddress( uint16_t segment, uint16_t offset ) {
-            return ( segment << 4 ) + ( offset & 0xFFF );
+            return ( segment << 4 ) + offset;
         }
 
         // Read a byte given a segment and an offset
@@ -284,6 +295,19 @@ namespace btp {
                 pointer + Fetch16(),
                 value
             );
+        }
+
+        // Pushes a word onto the stack
+        void Push16( uint16_t value ) {
+            SP -= 2;
+            Write16( SS, SP, value );
+        }
+
+        // Pop a word off the stack
+        uint16_t Pop16() {
+            uint16_t value = Read16( SS, SP );
+            SP += 2;
+            return value;
         }
     };
 

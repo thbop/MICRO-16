@@ -24,8 +24,7 @@
 #define PARSER_HPP
 
 
-
-
+#include <fstream>
 #include <vector>
 #include <unordered_map>
 
@@ -45,20 +44,21 @@ namespace parser {
 namespace ins {
 
 enum AddressingMode {
-    NONE  = 0b00000000000, // None
-    IM    = 0b00000000001, // Immediate
-    SO    = 0b00000000010, // Stack offset
-    SOI   = 0b00000000100, // Stack offset immediate
-    SPO   = 0b00000001000, // Stack pointer offset
-    SPOI  = 0b00000010000, // Stack pointer offset immediate
-    SPIO  = 0b00000100000, // Stack pointer immediate offset
-    DO    = 0b00001000000, // Data offset
-    DOI   = 0b00010000000, // Data offset immediate
-    DPO   = 0b00100000000, // Data offset pointer
-    DPOI  = 0b01000000000, // Data pointer offset immediate
-    DPIO  = 0b10000000000, // Data pointer immediate offset
-    SPIOI = SPOI | SPIO,   // Stack pointer immediate offset immediate
-    DPIOI = DPOI | DPIO,   // Data pointer immediate offset immediate
+    NONE  = 0b000000000000, // None
+    IM8   = 0b000000000001, // Immediate 8
+    IM16  = 0b000000000010, // Immediate 16
+    SO    = 0b000000000100, // Stack offset
+    SOI   = 0b000000001000, // Stack offset immediate
+    SPO   = 0b000000010000, // Stack pointer offset
+    SPOI  = 0b000000100000, // Stack pointer offset immediate
+    SPIO  = 0b000001000000, // Stack pointer immediate offset
+    DO    = 0b000010000000, // Data offset
+    DOI   = 0b000100000000, // Data offset immediate
+    DPO   = 0b001000000000, // Data offset pointer
+    DPOI  = 0b010000000000, // Data pointer offset immediate
+    DPIO  = 0b100000000000, // Data pointer immediate offset
+    SPIOI = SPOI | SPIO,    // Stack pointer immediate offset immediate
+    DPIOI = DPOI | DPIO,    // Data pointer immediate offset immediate
 };
 
 const Line
@@ -83,7 +83,7 @@ struct Info {
 // Instructions
 const std::unordered_map<std::string, Info> instructions = {
     // Accumulator stuff
-    { "lda",  { INS_LDA_IM, IM | SO | SPO | DO | DPO } },
+    { "lda",  { INS_LDA_IM, IM16 | SO | SPO | DO | DPO } },
     { "sta",  { INS_STA_SO - 1, SO | SPO | DO | DPO } },
     { "tab",  { INS_TAB, NONE } },
     { "tax",  { INS_TAX, NONE } },
@@ -93,7 +93,7 @@ const std::unordered_map<std::string, Info> instructions = {
     { "tads", { INS_TADS, NONE } },
 
     // Base stuff
-    { "ldb",  { INS_LDB_IM, IM | SOI | SPIOI | DOI | DPIOI } },
+    { "ldb",  { INS_LDB_IM, IM16 | SOI | SPIOI | DOI | DPIOI } },
     { "stb",  { INS_STB_SO - 1, SOI | SPIOI | DOI | DPIOI } },
     { "tba",  { INS_TBA, NONE } },
     { "tbx",  { INS_TBX, NONE } },
@@ -103,7 +103,7 @@ const std::unordered_map<std::string, Info> instructions = {
     { "tbds", { INS_TBDS, NONE } },
 
     // X-index stuff
-    { "ldx",  { INS_LDX_IM, IM | SOI | SPOI | DOI | DPOI } },
+    { "ldx",  { INS_LDX_IM, IM16 | SOI | SPOI | DOI | DPOI } },
     { "stx",  { INS_STX_SO - 1, SOI | SPOI | DOI | DPOI } },
     { "txa",  { INS_TXA, NONE } },
     { "txb",  { INS_TXB, NONE } },
@@ -113,7 +113,7 @@ const std::unordered_map<std::string, Info> instructions = {
     { "txds", { INS_TXDS, NONE } },
 
     // Y-pointer stuff
-    { "ldy",  { INS_LDY_IM, IM | SO | SPIO | DO | DPIO } },
+    { "ldy",  { INS_LDY_IM, IM16 | SO | SPIO | DO | DPIO } },
     { "sty",  { INS_STY_SO - 1, SO | SPIO | DO | DPIO } },
     { "tya",  { INS_TYA, NONE } },
     { "tyb",  { INS_TYB, NONE } },
@@ -122,16 +122,37 @@ const std::unordered_map<std::string, Info> instructions = {
     { "tycs", { INS_TYCS, NONE } },
     { "tyds", { INS_TYDS, NONE } },
 
+    // Stack operations
+    { "pusha", { INS_PUSHA, NONE } },
+    { "popa", { INS_POPA, NONE } },
+    { "pushb", { INS_PUSHB, NONE } },
+    { "popb", { INS_POPB, NONE } },
+    { "pushx", { INS_PUSHX, NONE } },
+    { "popx", { INS_POPX, NONE } },
+    { "pushy", { INS_PUSHY, NONE } },
+    { "popy", { INS_POPY, NONE } },
+    { "enter", { INS_ENTER, NONE } },
+    { "leave", { INS_LEAVE, NONE } },
+
+    // Jump stuff
+    { "jmp", { INS_JMP, IM8 } },
+
 };
 
 // Returns the addressing mode of an instruction given its token
 uint16_t GetAddressingMode( token::Instruction *token ) {
-    if ( token->subTokens.size() == 0 )               // None
+    if ( token->subTokens.size() == 0 )                // None
         return NONE;
-    if ( token->subTokens.size() > 1 )                // Invalid
+    if ( token->subTokens.size() > 1 )                  // Invalid
         return -1;
-    if ( token->subTokens[0]->type == token::NUMBER ) // Immediate
-        return IM;
+    if ( token->subTokens[0]->type == token::NUMBER ) { // Immediate
+        uint16_t number = ( (token::Number*)token->subTokens[0] )->value;
+        if ( number > 0xFF )
+            return IM16;
+        return IM8;
+    }
+    if ( token->subTokens[0]->type == token::LABEL )    // Label
+        return IM8; // The "safe one"
     
     // Bracket land
     if ( token->subTokens[0]->type == token::SEPARATOR ) {
@@ -171,7 +192,8 @@ uint16_t GetAddressingMode( token::Instruction *token ) {
 int GetAddressingModeOffset( uint16_t mode ) {
     switch ( mode ) {
         case NONE:
-        case IM:    return 0;
+        case IM8:
+        case IM16:    return 0;
         case SO:
         case SOI:   return 1;
         case SPO:
@@ -188,43 +210,6 @@ int GetAddressingModeOffset( uint16_t mode ) {
     return 0;
 }
 
-// Gets an immediate value x
-// Assumes token is valid
-// TODO: Make this less bad
-uint8_t GetIm( token::Instruction *token ) {
-    return ( (token::Number*)token->subTokens[0] )->value;
-}
-
-// Gets an immediate offset [bp+x] or [x]
-// Assumes token is valid
-// TODO: Make this less bad
-uint8_t GetImOffset( token::Instruction *token ) {
-    if ( token->subTokens[0]->subTokens[0]->type == token::NUMBER ) {
-        return ( (token::Number*)token->subTokens[0]->subTokens[0] )->value;
-    }
-    return ( (token::Number*)token->subTokens[0]->subTokens[2] )->value;
-}
-
-// Gets an immediate offset [[bp+x]+y] or [[x]+y]
-// Assumes token is valid
-// TODO: Make this less bad
-uint8_t GetPointerOffsetIm( token::Instruction *token ) {
-    if (
-        token->subTokens[0]->subTokens[0]->subTokens[0]->type == token::NUMBER
-    ) {
-        return ( (token::Number*)token->subTokens[0]->
-                    subTokens[0]->subTokens[0] )->value;
-    }
-    return ( (token::Number*)token->subTokens[0]->
-                subTokens[0]->subTokens[2] )->value;
-}
-
-// Gets an immediate pointer [[bp+x]+y] or [[x]+y]
-// Assumes token is valid
-// TODO: Make this less bad
-uint16_t GetPointerImOffset( token::Instruction *token ) {
-    return ( (token::Number*)token->subTokens[0]->subTokens[2] )->value;
-}
 
 }
 
@@ -256,7 +241,7 @@ public:
     #ifdef DEBUG
     // Debug prints the lexed structure
     void PrintStructure() {
-        PrintScope( &lexer->scope, 0 );
+        PrintScope( lexer->scopeStack.back(), 0 );
     }
     #endif
 
@@ -264,6 +249,8 @@ private:
     Lexer *lexer;
     obj::Object output;
     std::ofstream file;
+
+    // Debug ------------------------------------------------------------------
 
     #ifdef DEBUG
     // Prints a scope from the lexer
@@ -273,6 +260,25 @@ private:
     void PrintLine( Line *line, int indent );
     #endif
 
+    // Get immediate values ---------------------------------------------------
+
+    // Gets an immediate value x
+    uint16_t GetIm( token::Instruction *token );
+
+    // Gets an immediate offset [bp+x] or [x]
+    uint16_t GetOffsetIm( token::Instruction *token );
+
+    // Gets an immediate offset [[bp+x]+y] or [[x]+y]
+    uint8_t GetPointerOffsetIm( token::Instruction *token );
+
+    // Gets an immediate pointer [[bp+x]+y] or [[x]+y]
+    uint16_t GetPointerImOffset( token::Instruction *token );
+
+    // Sends immediate label data to the appropriate label
+    void SendImLabelData( token::Label *token, obj::ImLabelData data );
+
+    // Parsing ----------------------------------------------------------------
+
     // Parses a scope
     void ParseScope( Scope *scope );
 
@@ -281,6 +287,9 @@ private:
 
     // Parses a linker directive
     void ParseLinkerDirective( token::LinkerDirective *token );
+
+    // Parses a label
+    void ParseLabel( token::Label *token );
 
     // Parses line of code
     void ParseCode( token::Instruction *token );
@@ -296,24 +305,130 @@ void Parser::PrintLine( Line *line, int indent ) {
 // Prints a scope from the lexer
 void Parser::PrintScope( Scope *scope, int indent ) {
     for ( auto it : scope->lines ) {
+        PrintLine( it, indent + 1 );
         Scope *childScope = dynamic_cast<Scope*>(it);
         if ( childScope )
-            PrintScope( childScope, indent + 1 );
-        else {
-            PrintLine( it, indent + 1 );
-        }
+            PrintScope( childScope, indent + 2 );
+
     }
 }
 #endif
 
+// Gets an immediate value x
+// Assumes token is valid
+uint16_t Parser::GetIm( token::Instruction *token ) {
+    token::Token *t0 = token->subTokens[0];
+
+    // If immediate is a label, its value to zero and fix it in post
+    // (the linker)
+    if ( t0->type == token::LABEL ) {
+        SendImLabelData(
+            (token::Label*)t0,
+            { obj::ImLabelData::OFFSET, (uint16_t)output.code->size() }
+        );
+        return 0;
+    }
+
+    return ( (token::Number*)t0 )->value;
+}
+
+// Gets an immediate offset [bp+x] or [x]
+// Assumes token is valid
+uint16_t Parser::GetOffsetIm( token::Instruction *token ) {
+    token::Token *t0 = token->subTokens[0]->subTokens[0];
+    if ( t0->type == token::REGISTER )
+        t0 = token->subTokens[0]->subTokens[2];
+
+    // If immediate is a label, its value to zero and fix it in post
+    // (the linker)
+    if ( t0->type == token::LABEL ) {
+        SendImLabelData(
+            (token::Label*)t0,
+            { obj::ImLabelData::OFFSET, (uint16_t)output.code->size() }
+        );
+        return 0;
+    }
+
+    return ( (token::Number*)t0 )->value;
+}
+
+// Gets an immediate offset [[bp+x]+y] or [[x]+y]
+// Assumes token is valid
+uint8_t Parser::GetPointerOffsetIm( token::Instruction *token ) {
+    token::Token *t0 = token->subTokens[0]->subTokens[0]->subTokens[0];
+    if ( t0->type == token::REGISTER )
+        t0 = token->subTokens[0]->subTokens[2];
+
+    // If immediate is a label, its value to zero and fix it in post
+    // (the linker)
+    if ( t0->type == token::LABEL ) {
+        SendImLabelData(
+            (token::Label*)t0,
+            { obj::ImLabelData::OFFSET, (uint16_t)output.code->size() }
+        );
+        return 0;
+    }
+
+    return ( (token::Number*)t0 )->value;
+}
+
+// Gets an immediate pointer [[bp+x]+y] or [[x]+y]
+// Assumes token is valid
+uint16_t Parser::GetPointerImOffset( token::Instruction *token ) {
+    token::Token *t0 = token->subTokens[0]->subTokens[2];
+
+    // If immediate is a label, its value to zero and fix it in post
+    // (the linker)
+    if ( t0->type == token::LABEL ) {
+        SendImLabelData(
+            (token::Label*)t0,
+            { obj::ImLabelData::ABSOLUTE, (uint16_t)output.code->size() }
+        );
+        return 0;
+    }
+
+    return ( (token::Number*)t0 )->value;
+}
+
 // Parses a linker directive
 void Parser::ParseLinkerDirective( token::LinkerDirective *token ) {
+    token::Number *number =
+        dynamic_cast<token::Number*>( token->subTokens[0] );
+    
+    token::Label *label = dynamic_cast<token::Label*>( token->subTokens[0] );
+
     if ( !error ) {
-        if ( token->value == ".org" ) {
-            token::Number *number = (token::Number*)token->subTokens[0];
+        if ( token->value == ".org" && number != nullptr ) {
             output.header->origin = number->value;
         }
+        else if ( token->value == ".data" && number != nullptr ) {
+            output.header->dataOrigin = number->value;
+        }
+        else if ( token->value == "extern" && label != nullptr ) {
+            if ( label->value[0] != '.' )
+                output.header->labels[label->value]->external = true;
+            else
+                std::cout << "ERROR: Cannot make sub-label \"" << label->value
+                    << "\" external!\n";
+        }
     }
+}
+
+// Sends immediate label data to the appropriate label
+void Parser::SendImLabelData( token::Label *token, obj::ImLabelData data ) {
+    obj::Label *label =
+        output.header->GetLabelFromToken( (token::Label*)token );
+    
+    label->AppendIm( data );
+}
+
+// Parses a label
+void Parser::ParseLabel( token::Label *token ) {
+    obj::Label *label =
+        output.header->GetLabelFromToken( (token::Label*)token );
+
+    // Set the position of the label
+    label->position = (uint16_t)output.code->size();
 }
 
 // Parses line of code
@@ -332,13 +447,23 @@ void Parser::ParseCode( token::Instruction *token ) {
 
         // Get and check addressing mode
         uint16_t addressingMode = ins::GetAddressingMode( token );
+        
+        // Also check if we need to cast from a byte immediate to a word
+        // immediate
+        if (
+            ( info.addressingModes & ins::IM16 ) &&
+            ( addressingMode & ins::IM8 ) &&
+            addressingMode != (uint16_t)-1
+        )
+            addressingMode = ins::IM16;
+
         if (
             // Don't raise errors if there's no addressing mode
-            info.addressingModes != ins::NONE &&
+            ( info.addressingModes != ins::NONE ) &&
             // Check if the instruction supports the provided addressing mode
             ( !( addressingMode & info.addressingModes ) ||
             // Also check if the provided addressing mode is invalid
-            addressingMode == -1 )
+            addressingMode == (uint16_t)-1 )
         ) {
             std::cout << "ERROR: Invalid addressing mode for instruction \""
                 << token->value << "\"\n";
@@ -353,14 +478,22 @@ void Parser::ParseCode( token::Instruction *token ) {
         output.code->Append( opcode );
 
         // Add immediate values
-        if ( ( addressingMode & ins::IM ) )
-            output.code->Append( ins::GetIm( token ) );
-        if ( ( addressingMode & ( ins::SOI | ins::DOI ) ) )
-            output.code->Append( ins::GetImOffset( token ) );
-        else if ( ( addressingMode & ( ins::SPOI | ins::DPOI ) ) )
-            output.code->Append( ins::GetPointerOffsetIm( token ) );
+        switch ( addressingMode ) {
+            case ins::IM8:
+                output.code->Append( (uint8_t)GetIm( token ) );
+                break;
+            case ins::IM16:
+                output.code->Append( GetIm( token ) );
+                break;
+            case ins::SOI:
+            case ins::DOI:
+                output.code->Append( (uint8_t)GetOffsetIm( token ) );
+                break;
+        }
+        if ( ( addressingMode & ( ins::SPOI | ins::DPOI ) ) )
+            output.code->Append( GetPointerOffsetIm( token ) );
         if ( ( addressingMode & ( ins::SPIO | ins::DPIO ) ) )
-            output.code->Append( ins::GetPointerImOffset( token ) );
+            output.code->Append( GetPointerImOffset( token ) );
     }
 }
 
@@ -375,6 +508,9 @@ void Parser::ParseLine( Line *line ) {
             case token::INSTRUCTION:
                 ParseCode( (token::Instruction*)token );
                 break;
+            case token::LABEL:
+                ParseLabel( (token::Label*)token );
+                break;
         }
     }
 }
@@ -383,18 +519,18 @@ void Parser::ParseLine( Line *line ) {
 void Parser::ParseScope( Scope *scope ) {
     if ( !error ) {
         for ( auto it : scope->lines ) {
+            ParseLine( it );
+
             Scope *subScope = dynamic_cast<Scope*>( it );
             if ( subScope != nullptr )
                 ParseScope( subScope );
-            else
-                ParseLine( it );
         }
     }
 }
 
 // Parse the lex structure and output the file
 void Parser::Parse() {
-    ParseScope( &lexer->scope );
+    ParseScope( lexer->scopeStack.back() );
     if ( !error ) {
         output.Build();
 

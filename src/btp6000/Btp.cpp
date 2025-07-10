@@ -22,9 +22,18 @@
 
 #include "Btp.hpp"
 
+namespace btp {
+
 // Executes one instruction
-void btp::BetterThanPico::Execute() {
+void BetterThanPico::Execute() {
     uint8_t instruction = Fetch();
+    #ifdef BTP_DEBUG
+    printf(
+        "INS: %02X IP: %02X A: %02X B: %02X X: %02X Y: %02X\n",
+        instruction, IP, A.value, B.value, X, Y
+    );
+
+    #endif
     switch ( instruction ) {
         // LDA
         case INS_LDA_IM:  A.value = LoadImmediate();                    break;
@@ -67,5 +76,74 @@ void btp::BetterThanPico::Execute() {
         case INS_TBSS:    SS = B.value;                                 break;
         case INS_TBCS:    CS = B.value;                                 break;
         case INS_TBDS:    DS = B.value;                                 break;
+
+        // LDX
+        case INS_LDX_IM:  X = LoadImmediate();                          break;
+        case INS_LDX_SO:  X = LoadOffsetIm( SS, BP );                   break;
+        case INS_LDX_SPO: X = LoadPointerOffsetIm( SS, BP, Y );         break;
+        case INS_LDX_DO:  X = LoadOffsetIm( DS, 0 );                    break;
+        case INS_LDX_DPO: X = LoadPointerOffsetIm( DS, 0, Y );          break;
+
+        // STX
+        case INS_STX_SO:  StoreOffsetIm( SS, BP, X );                   break;
+        case INS_STX_SPO: StorePointerOffsetIm( SS, BP, Y, X );         break;
+        case INS_STX_DO:  StoreOffsetIm( DS, 0, X );                    break;
+        case INS_STX_DPO: StorePointerOffsetIm( DS, 0, Y, X );          break;
+
+        // TX-X
+        case INS_TXA:     A.value = X;                                  break;
+        case INS_TXB:     B.value = X;                                  break;
+        case INS_TXY:     Y = X;                                        break;
+        case INS_TXSS:    SS = X;                                       break;
+        case INS_TXCS:    CS = X;                                       break;
+        case INS_TXDS:    DS = X;                                       break;
+
+        // LDY
+        case INS_LDY_IM:  Y = LoadImmediate();                          break;
+        case INS_LDY_SO:  Y = LoadOffset( SS, BP + X );                 break;
+        case INS_LDY_SPO: Y = LoadPointerImOffset( SS, BP + X, 0 );     break;
+        case INS_LDY_DO:  Y = LoadOffset( DS, X );                      break;
+        case INS_LDY_DPO: Y = LoadPointerImOffset( DS, X, 0 );          break;
+
+        // STY
+        case INS_STY_SO:  StoreOffset( SS, BP + X, Y );                 break;
+        case INS_STY_SPO: StorePointerImOffset( SS, BP + X, 0, Y );     break;
+        case INS_STY_DO:  StoreOffset( DS, X, Y );                      break;
+        case INS_STY_DPO: StorePointerImOffset( DS, X, 0, Y );          break;
+
+        // TY-X
+        case INS_TYA:     A.value = Y;                                  break;
+        case INS_TYB:     B.value = Y;                                  break;
+        case INS_TYX:     X = Y;                                        break;
+        case INS_TYSS:    SS = Y;                                       break;
+        case INS_TYCS:    CS = Y;                                       break;
+        case INS_TYDS:    DS = Y;                                       break;
+
+        case INS_PUSHA:   Push16( A.value );                            break;
+        case INS_POPA:    A.value = Pop16();                            break;
+        case INS_PUSHB:   Push16( B.value );                            break;
+        case INS_POPB:    B.value = Pop16();                            break;
+        case INS_PUSHX:   Push16( X );                                  break;
+        case INS_POPX:    X = Pop16();                                  break;
+        case INS_PUSHY:   Push16( Y );                                  break;
+        case INS_POPY:    Y = Pop16();                                  break;
+        case INS_ENTER:   Push16( BP ); BP = SP;                        break;
+        case INS_LEAVE:   SP = BP; BP = Pop16();                        break;
+
+        // JMP
+        case INS_JMP:     IP += (int8_t)Fetch();                        break;
     }
 }
+
+#ifdef BTP_DEBUG
+// Dumps all the memory to a file
+void BetterThanPico::DumpMemory( const char *outputFile ) {
+    std::ofstream file( outputFile );
+
+    file.write( (char*)memory->data(), BOB3K_SIZE );
+
+    file.close();
+}
+
+}
+#endif
