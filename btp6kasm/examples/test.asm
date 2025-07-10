@@ -8,7 +8,7 @@ set_palette:
     lda 0x3C0
     tads         ; Set data segment to the vram palette section
 
-    lda 13       ; Light blue
+    lda 0       ; Light blue
     sta [0]      ; Set background to light blue
 
     lda 8        ; Yellow
