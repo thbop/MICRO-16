@@ -233,8 +233,7 @@ void Label::CorrectImmediates( uint16_t origin, Bytes *code ) {
                         (int8_t)( position - im.position - 1 );
                     break;
                 case ImLabelData::ABSOLUTE:
-                    *(uint16_t*)( &code->buffer()[im.position] )
-                        = origin + position;
+                    *(uint16_t*)( &code->buffer()[im.position] ) = position;
                     break;
             }
         }

@@ -83,56 +83,58 @@ struct Info {
 // Instructions
 const std::unordered_map<std::string, Info> instructions = {
     // Accumulator stuff
-    { "lda",  { INS_LDA_IM, IM16 | SOI | SPIOI | DOI | DPIOI } },
-    { "sta",  { INS_STA_SO - 1, SOI | SPIOI | DOI | DPIOI } },
-    { "tab",  { INS_TAB, NONE } },
-    { "tax",  { INS_TAX, NONE } },
-    { "tay",  { INS_TAY, NONE } },
-    { "tass", { INS_TASS, NONE } },
-    { "tacs", { INS_TACS, NONE } },
-    { "tads", { INS_TADS, NONE } },
+    { "lda",   { INS_LDA_IM, IM16 | SOI | SPIOI | DOI | DPIOI } },
+    { "sta",   { INS_STA_SO - 1, SOI | SPIOI | DOI | DPIOI } },
+    { "tab",   { INS_TAB, NONE } },
+    { "tax",   { INS_TAX, NONE } },
+    { "tay",   { INS_TAY, NONE } },
+    { "tass",  { INS_TASS, NONE } },
+    { "tacs",  { INS_TACS, NONE } },
+    { "tads",  { INS_TADS, NONE } },
 
     // Base stuff
-    { "ldb",  { INS_LDB_IM, IM16 | SO | SPO | DO | DPO } },
-    { "stb",  { INS_STB_SO - 1, SO | SPO | DO | DPO } },
-    { "tba",  { INS_TBA, NONE } },
-    { "tbx",  { INS_TBX, NONE } },
-    { "tby",  { INS_TBY, NONE } },
-    { "tbss", { INS_TBSS, NONE } },
-    { "tbcs", { INS_TBCS, NONE } },
-    { "tbds", { INS_TBDS, NONE } },
+    { "ldb",   { INS_LDB_IM, IM16 | SO | SPO | DO | DPO } },
+    { "stb",   { INS_STB_SO - 1, SO | SPO | DO | DPO } },
+    { "tba",   { INS_TBA, NONE } },
+    { "tbx",   { INS_TBX, NONE } },
+    { "tby",   { INS_TBY, NONE } },
+    { "tbss",  { INS_TBSS, NONE } },
+    { "tbcs",  { INS_TBCS, NONE } },
+    { "tbds",  { INS_TBDS, NONE } },
 
     // X-index stuff
-    { "ldx",  { INS_LDX_IM, IM16 | SOI | SPOI | DOI | DPOI } },
-    { "stx",  { INS_STX_SO - 1, SOI | SPOI | DOI | DPOI } },
-    { "txa",  { INS_TXA, NONE } },
-    { "txb",  { INS_TXB, NONE } },
-    { "txy",  { INS_TXY, NONE } },
-    { "txss", { INS_TXSS, NONE } },
-    { "txcs", { INS_TXCS, NONE } },
-    { "txds", { INS_TXDS, NONE } },
+    { "ldx",   { INS_LDX_IM, IM16 | SOI | SPOI | DOI | DPOI } },
+    { "stx",   { INS_STX_SO - 1, SOI | SPOI | DOI | DPOI } },
+    { "txa",   { INS_TXA, NONE } },
+    { "txb",   { INS_TXB, NONE } },
+    { "txy",   { INS_TXY, NONE } },
+    { "txss",  { INS_TXSS, NONE } },
+    { "txcs",  { INS_TXCS, NONE } },
+    { "txds",  { INS_TXDS, NONE } },
 
     // Y-pointer stuff
-    { "ldy",  { INS_LDY_IM, IM16 | SO | SPIO | DO | DPIO } },
-    { "sty",  { INS_STY_SO - 1, SO | SPIO | DO | DPIO } },
-    { "tya",  { INS_TYA, NONE } },
-    { "tyb",  { INS_TYB, NONE } },
-    { "tyx",  { INS_TYX, NONE } },
-    { "tyss", { INS_TYSS, NONE } },
-    { "tycs", { INS_TYCS, NONE } },
-    { "tyds", { INS_TYDS, NONE } },
+    { "ldy",   { INS_LDY_IM, IM16 | SO | SPIO | DO | DPIO } },
+    { "sty",   { INS_STY_SO - 1, SO | SPIO | DO | DPIO } },
+    { "tya",   { INS_TYA, NONE } },
+    { "tyb",   { INS_TYB, NONE } },
+    { "tyx",   { INS_TYX, NONE } },
+    { "tyss",  { INS_TYSS, NONE } },
+    { "tycs",  { INS_TYCS, NONE } },
+    { "tyds",  { INS_TYDS, NONE } },
 
     // Stack operations
     { "pusha", { INS_PUSHA, NONE } },
-    { "popa", { INS_POPA, NONE } },
+    { "popa",  { INS_POPA, NONE } },
     { "pushb", { INS_PUSHB, NONE } },
-    { "popb", { INS_POPB, NONE } },
+    { "popb",  { INS_POPB, NONE } },
     { "pushx", { INS_PUSHX, NONE } },
-    { "popx", { INS_POPX, NONE } },
+    { "popx",  { INS_POPX, NONE } },
     { "pushy", { INS_PUSHY, NONE } },
-    { "popy", { INS_POPY, NONE } },
+    { "popy",  { INS_POPY, NONE } },
     { "enter", { INS_ENTER, NONE } },
     { "leave", { INS_LEAVE, NONE } },
+    { "call",  { INS_CALL, IM16 } },
+    { "ret",   { INS_RET, NONE } },
 
     // Jump stuff
     { "jmp", { INS_JMP, IM8 } },
@@ -263,7 +265,7 @@ private:
     // Get immediate values ---------------------------------------------------
 
     // Gets an immediate value x
-    uint16_t GetIm( token::Instruction *token );
+    uint16_t GetIm( token::Instruction *token, bool isByte );
 
     // Gets an immediate offset [bp+x] or [x]
     uint16_t GetOffsetIm( token::Instruction *token );
@@ -316,7 +318,7 @@ void Parser::PrintScope( Scope *scope, int indent ) {
 
 // Gets an immediate value x
 // Assumes token is valid
-uint16_t Parser::GetIm( token::Instruction *token ) {
+uint16_t Parser::GetIm( token::Instruction *token, bool isByte ) {
     token::Token *t0 = token->subTokens[0];
 
     // If immediate is a label, its value to zero and fix it in post
@@ -324,7 +326,14 @@ uint16_t Parser::GetIm( token::Instruction *token ) {
     if ( t0->type == token::LABEL ) {
         SendImLabelData(
             (token::Label*)t0,
-            { obj::ImLabelData::OFFSET, (uint16_t)output.code->size() }
+            {
+                (uint8_t)(
+                    isByte ?
+                    obj::ImLabelData::OFFSET :
+                    obj::ImLabelData::ABSOLUTE
+                ),
+                (uint16_t)output.code->size()
+            }
         );
         return 0;
     }
@@ -477,10 +486,10 @@ void Parser::ParseCode( token::Instruction *token ) {
         // Add immediate values
         switch ( addressingMode ) {
             case ins::IM8:
-                output.code->Append( (uint8_t)GetIm( token ) );
+                output.code->Append( (uint8_t)GetIm( token, true ) );
                 break;
             case ins::IM16:
-                output.code->Append( GetIm( token ) );
+                output.code->Append( GetIm( token, false ) );
                 break;
             case ins::SOI:
             case ins::DOI:

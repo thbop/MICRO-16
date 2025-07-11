@@ -129,6 +129,8 @@ void BetterThanPico::Execute() {
         case INS_POPY:    Y = Pop16();                                  break;
         case INS_ENTER:   Push16( BP ); BP = SP;                        break;
         case INS_LEAVE:   SP = BP; BP = Pop16();                        break;
+        case INS_CALL:    Push16( IP ); IP = Fetch16();                 break;
+        case INS_RET:     IP = Pop16() + 2; /* Call argument offset */  break;
 
         // JMP
         case INS_JMP:     IP += (int8_t)Fetch();                        break;

@@ -119,7 +119,7 @@ enum Instructions {
     INS_POPY    = 0x57, // Pop Y
     INS_ENTER   = 0x58, // Enter stack frame ( push bp, bp = sp )
     INS_LEAVE   = 0x59, // Leave stack frame ( sp = bp, pop bp )
-    INS_CALL    = 0x5A, // Call a function (push IP and short jump to address)
+    INS_CALL    = 0x5A, // Call a function (push IP and long jump to address)
     INS_RET     = 0x5B, // Return from a function ( pop IP )
 
     // Misc transfers

@@ -1,14 +1,16 @@
 .org 2000h
 
-main:
-    lda 0x200
-    tass         ; Stack Segment = 0x200
+_start:
+    jmp main
 
-set_palette:
+
+; Sets the first sprite and palette to resemble a pineapple
+; Takes no args
+pineapple_sprite:
     lda 0x3C0
     tads         ; Set data segment to the vram palette section
 
-    lda 0       ; Light blue
+    lda 0        ; Light blue
     sta [0]      ; Set background to light blue
 
     lda 8        ; Yellow
@@ -18,7 +20,7 @@ set_palette:
     lda 2        ; White
     sta [3]
 
-draw:
+.draw:
     lda 0x300
     tads         ; Set DS to sprite vram
 
@@ -44,6 +46,14 @@ draw:
     lda 0x10
     sta [13]
 
+    ret
+
+
+main:
+    lda 0x200
+    tass         ; Stack Segment = 0x200
+
+    call pineapple_sprite
 
 halt:
     jmp halt
