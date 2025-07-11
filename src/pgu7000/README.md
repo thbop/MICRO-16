@@ -20,7 +20,7 @@ worth checking out how the NES PPU works:
 ### Sprites
 
 Essentially, sprites are 8x8 bitmap images. Each pixel is 2 bits for a total of
-16 bytes per sprite (2 bits * 8 * 8 = 128 bits; 128 bits / 8 bits = 1 byte). A 
+16 bytes per sprite (2 bits * 8 * 8 = 128 bits; 128 bits / 8 bits = 16 bytes). A 
 naive implementation would store each pixel's bits right next to each other for 
 effectively 4 pixels per byte (( 8 pixels * 8 pixels ) / 4 pixels per byte = 16
 bytes). Extracting each pixel's value would take many unecessarily complicated
