@@ -168,7 +168,7 @@ namespace btp {
         }
 
         // Sets flags appropriately for a CMP instruction
-        void CompareFlagSet( uint16_t a, uint16_t b ) {
+        void Compare( uint16_t a, uint16_t b ) {
             flags.Z = a == b;
             flags.C = a > b;
             flags.N = a >= b;
@@ -308,6 +308,25 @@ namespace btp {
             uint16_t value = Read16( SS, SP );
             SP += 2;
             return value;
+        }
+
+        // Control flow + jumps
+        // Adds a signed immediate byte to the instruction pointer
+        void Jump() {
+            IP += (int8_t)Fetch();
+        }
+
+        // Jumps if the given condition is true
+        void JumpCondition( uint8_t condition ) {
+            if ( condition )
+                Jump();
+            else
+                IP++; // Otherwise, skip past the argument
+        }
+
+        // Sets the instruction pointer to the given word
+        void LongJump() {
+            IP = Fetch16();
         }
     };
 

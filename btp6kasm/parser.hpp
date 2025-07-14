@@ -44,19 +44,19 @@ namespace parser {
 namespace ins {
 
 enum AddressingMode {
-    NONE  = 0b000000000000, // None
-    IM8   = 0b000000000001, // Immediate 8
-    IM16  = 0b000000000010, // Immediate 16
-    SO    = 0b000000000100, // Stack offset
-    SOI   = 0b000000001000, // Stack offset immediate
-    SPO   = 0b000000010000, // Stack pointer offset
-    SPOI  = 0b000000100000, // Stack pointer offset immediate
-    SPIO  = 0b000001000000, // Stack pointer immediate offset
-    DO    = 0b000010000000, // Data offset
-    DOI   = 0b000100000000, // Data offset immediate
-    DPO   = 0b001000000000, // Data offset pointer
-    DPOI  = 0b010000000000, // Data pointer offset immediate
-    DPIO  = 0b100000000000, // Data pointer immediate offset
+    NONE  = 0b0000000000001, // None
+    IM8   = 0b0000000000010, // Immediate 8
+    IM16  = 0b0000000000100, // Immediate 16
+    SO    = 0b0000000001000, // Stack offset
+    SOI   = 0b0000000010000, // Stack offset immediate
+    SPO   = 0b0000000100000, // Stack pointer offset
+    SPOI  = 0b0000001000000, // Stack pointer offset immediate
+    SPIO  = 0b0000010000000, // Stack pointer immediate offset
+    DO    = 0b0000100000000, // Data offset
+    DOI   = 0b0001000000000, // Data offset immediate
+    DPO   = 0b0010000000000, // Data offset pointer
+    DPOI  = 0b0100000000000, // Data pointer offset immediate
+    DPIO  = 0b1000000000000, // Data pointer immediate offset
     SPIOI = SPOI | SPIO,    // Stack pointer immediate offset immediate
     DPIOI = DPOI | DPIO,    // Data pointer immediate offset immediate
 };
@@ -136,8 +136,19 @@ const std::unordered_map<std::string, Info> instructions = {
     { "call",  { INS_CALL, IM16 } },
     { "ret",   { INS_RET, NONE } },
 
+    // Misc transfers
+    { "tssb",  { INS_TSSB, NONE } },
+    { "tcsb",  { INS_TCSB, NONE } },
+    { "tdsb",  { INS_TDSB, NONE } },
+
     // Jump stuff
-    { "jmp", { INS_JMP, IM8 } },
+    { "cmp",   { INS_CMP, NONE | IM16 | SOI | SPIOI | DOI | DPIOI } },
+    { "je",    { INS_JE, IM8 } },
+    { "jne",   { INS_JNE, IM8 } },
+    { "jg",    { INS_JG, IM8 } },
+    { "jge",   { INS_JGE, IM8 } },
+    { "jmp",   { INS_JMP, IM8 } },
+    { "ljmp",  { INS_LJMP, IM16 } },
 
 };
 
@@ -465,7 +476,7 @@ void Parser::ParseCode( token::Instruction *token ) {
 
         if (
             // Don't raise errors if there's no addressing mode
-            ( info.addressingModes != ins::NONE ) &&
+            !( info.addressingModes & ins::NONE ) &&
             // Check if the instruction supports the provided addressing mode
             ( !( addressingMode & info.addressingModes ) ||
             // Also check if the provided addressing mode is invalid

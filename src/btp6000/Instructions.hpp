@@ -129,12 +129,17 @@ enum Instructions {
 
     // Control flow
     INS_CMP     = 0xC0, // Compare A with B
-    INS_JE      = 0xC1, // Jump equal,         if ZF == 1
-    INS_JNE     = 0xC2, // Jump not equal,     if ZF == 0
-    INS_JG      = 0xC3, // Jump greater,       if CF == 1
-    INS_JGE     = 0xC4, // Jump greater equal, if NF == 1
-    INS_JMP     = 0xC5, // Short jump,         increments IP
-    INS_LJMP    = 0xC6, // Long jump,          sets IP
+    INS_CMP_IM  = 0xC1, // Compare A with im
+    INS_CMP_SO  = 0xC2, // Compare A with [SS:BP+im]
+    INS_CMP_SPO = 0xC3, // Compare A with [[SS:BP+im]+im]
+    INS_CMP_DO  = 0xC4, // Compare A with [DS:im]
+    INS_CMP_DPO = 0xC5, // Compare A with [[DS:im]+im]
+    INS_JE      = 0xC6, // Jump equal,         if ZF == 1
+    INS_JNE     = 0xC7, // Jump not equal,     if ZF == 0
+    INS_JG      = 0xC8, // Jump greater,       if CF == 1
+    INS_JGE     = 0xC9, // Jump greater equal, if NF == 1
+    INS_JMP     = 0xCA, // Short jump,         increments IP
+    INS_LJMP    = 0xCB, // Long jump,          sets IP
 
     // Interrupts
     INS_INT     = 0x00, // Interrupt 

@@ -132,8 +132,21 @@ void BetterThanPico::Execute() {
         case INS_CALL:    Push16( IP ); IP = Fetch16();                 break;
         case INS_RET:     IP = Pop16() + 2; /* Call argument offset */  break;
 
-        // JMP
-        case INS_JMP:     IP += (int8_t)Fetch();                        break;
+        // Control flow + jumps
+        case INS_CMP:     Compare( A.value, B.value );                  break;
+        case INS_CMP_IM:  Compare( A.value, Fetch16() );                break;
+        case INS_CMP_SO:  Compare( A.value, LoadOffsetIm( SS, BP ) );   break;
+        case INS_CMP_SPO:
+            Compare( A.value, LoadPointerImOffsetIm( SS, BP, 0 ) );     break;
+        case INS_CMP_DO:  Compare( A.value, LoadOffsetIm( DS, 0 ) );    break;
+        case INS_CMP_DPO:
+            Compare( A.value, LoadPointerImOffsetIm( DS, 0, 0 ) );      break;
+        case INS_JE:      JumpCondition( flags.Z );                     break;
+        case INS_JNE:     JumpCondition( !flags.Z );                    break;
+        case INS_JG:      JumpCondition( flags.C );                     break;
+        case INS_JGE:     JumpCondition( flags.N );                     break;
+        case INS_JMP:     Jump();                                       break;
+        case INS_LJMP:    LongJump();                                   break;
     }
 }
 
