@@ -355,9 +355,13 @@ uint16_t Parser::GetIm( token::Instruction *token, bool isByte ) {
 // Gets an immediate offset [bp+x] or [x]
 // Assumes token is valid
 uint16_t Parser::GetOffsetIm( token::Instruction *token ) {
-    token::Token *t0 = token->subTokens[0]->subTokens[0];
-    if ( t0->type == token::REGISTER )
+    token::Token
+        *t0 = token->subTokens[0]->subTokens[0], // Number?
+        *s0 = NULL;                              // Sign?
+    if ( t0->type == token::REGISTER ) {
         t0 = token->subTokens[0]->subTokens[2];
+        s0 = token->subTokens[0]->subTokens[1];
+    }
 
     // If immediate is a label, its value to zero and fix it in post
     // (the linker)
@@ -367,6 +371,13 @@ uint16_t Parser::GetOffsetIm( token::Instruction *token ) {
             { obj::ImLabelData::OFFSET, (uint16_t)output.code->size() }
         );
         return 0;
+    }
+    if (
+        s0 != NULL                   &&
+        s0->type == token::SEPARATOR &&
+        ( (token::Separator*)s0 )->value == '-'
+    ) {
+        return -( (token::Number*)t0 )->value;
     }
 
     return ( (token::Number*)t0 )->value;
@@ -375,27 +386,15 @@ uint16_t Parser::GetOffsetIm( token::Instruction *token ) {
 // Gets an immediate offset [[bp+x]+y] or [[x]+y]
 // Assumes token is valid
 uint8_t Parser::GetPointerOffsetIm( token::Instruction *token ) {
-    token::Token *t0 = token->subTokens[0]->subTokens[0]->subTokens[0];
-    if ( t0->type == token::REGISTER )
-        t0 = token->subTokens[0]->subTokens[2];
-
-    // If immediate is a label, its value to zero and fix it in post
-    // (the linker)
-    if ( t0->type == token::LABEL ) {
-        SendImLabelData(
-            (token::Label*)t0,
-            { obj::ImLabelData::OFFSET, (uint16_t)output.code->size() }
-        );
-        return 0;
-    }
-
-    return ( (token::Number*)t0 )->value;
+    return GetOffsetIm( (token::Instruction*)token->subTokens[0] );
 }
 
 // Gets an immediate pointer [[bp+x]+y] or [[x]+y]
 // Assumes token is valid
 uint16_t Parser::GetPointerImOffset( token::Instruction *token ) {
-    token::Token *t0 = token->subTokens[0]->subTokens[2];
+    token::Token
+        *t0 = token->subTokens[0]->subTokens[2],
+        *s0 = token->subTokens[0]->subTokens[1];
 
     // If immediate is a label, its value to zero and fix it in post
     // (the linker)
@@ -406,6 +405,12 @@ uint16_t Parser::GetPointerImOffset( token::Instruction *token ) {
         );
         return 0;
     }
+
+    if (
+        s0->type == token::SEPARATOR &&
+        ( (token::Separator*)s0 )->value == '-'
+    )
+        return -( (token::Number*)t0 )->value;
 
     return ( (token::Number*)t0 )->value;
 }

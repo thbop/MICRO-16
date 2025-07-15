@@ -61,22 +61,6 @@ pineapple_sprite:
     ret
 
 
-; Tests control flow
-; Takes no arguments
-cmp_test:
-    pusha
-    pushb
-
-.compare:
-    lda 10
-    ldb 5
-    cmp
-    jg .compare
-
-    popa
-    popb
-    ret
-
 
 main:
     lda 0x200
@@ -84,8 +68,7 @@ main:
 
     call pineapple_sprite
 
-    call cmp_test
-
+    lda [[bp-2]-1]
 
 
 halt:

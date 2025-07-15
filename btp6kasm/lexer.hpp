@@ -82,7 +82,7 @@ std::vector<std::string> linkerDirectives = {
 };
 
 // Separators
-std::string separators = "+[]:";
+std::string separators = "+-[]:";
 
 
 // Abstract token class
@@ -364,8 +364,13 @@ public:
         equal &= ( type == other->type );
         if ( !equal ) return false;
         
-        if ( inValue )
-            equal &= ( value == ( (Separator*)other )->value );
+        if ( inValue ) {
+            char otherValue = ( (Separator*)other )->value;
+            if ( value == '-' && otherValue == '+' ) // Laziness
+                return true;
+            equal &= ( value == otherValue );
+        }
+            
 
         return equal;
     }
