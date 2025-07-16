@@ -21,7 +21,7 @@
 - Data Segment (DS)
 Check out the [assembly guide](ASSEMBLY_GUIDE.md) for more information about segmentation.
 
-## Flags
+### Flags
 - Carry flag (C)
 - Zero flag (Z)
 - Overflow flag (V)
