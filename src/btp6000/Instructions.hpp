@@ -147,6 +147,9 @@ enum Instructions {
                         //     interrupt jump table, and jump to the interrupt
                         //     handler
     INS_RTI     = 0x01, // Return from interrupt (pop IP and flags)
+
+    // Arithmetic
+    
 };
 
 #endif

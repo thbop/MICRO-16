@@ -7,10 +7,10 @@ _start:
 ; Sets the first sprite and palette to resemble a pineapple
 ; Takes no args
 pineapple_sprite:
-    pushb        ; push B
-    tdsb
-    pushb        ; push DS
-    pusha        ; push A
+    pusha        ; push a
+    tdsa
+    pusha        ; push ds
+    pushb        ; push b
 
 
     lda 0x03C0
@@ -53,22 +53,20 @@ pineapple_sprite:
     sta [13]
 
     ; Cleanup
-    popa         ; pop A
-    popb
-    tbds         ; pop DS
-    popb         ; pop B
+    popb         ; pop b
+    popa
+    tads         ; pop ds
+    popa         ; pop a
 
     ret
 
 
 
 main:
-    lda 0x200
+    lda 0x800
     tass         ; Stack Segment = 0x200
 
     call pineapple_sprite
-
-    lda [[bp-2]-1]
 
 
 halt:

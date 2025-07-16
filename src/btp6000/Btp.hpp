@@ -25,6 +25,8 @@
 
 #define BTP_DEBUG
 
+#define BTP_INTERRUPT_COUNT 16
+
 #include <fstream>
 
 #include "stdio.h"
@@ -297,10 +299,20 @@ namespace btp {
             );
         }
 
+        // Pushes a byte onto the stack
+        void Push( uint8_t value ) {
+            Write( SS, --SP, value );
+        }
+
         // Pushes a word onto the stack
         void Push16( uint16_t value ) {
             SP -= 2;
             Write16( SS, SP, value );
+        }
+
+        // Pops a byte off the stack
+        uint8_t Pop() {
+            return Read( SS, SP++ );
         }
 
         // Pop a word off the stack
@@ -327,6 +339,25 @@ namespace btp {
         // Sets the instruction pointer to the given word
         void LongJump() {
             IP = Fetch16();
+        }
+
+        // Calls the appropriate interrupt
+        void Interrupt( uint8_t id ) {
+            if ( id < BTP_INTERRUPT_COUNT ) {
+                // Save current flags and IP
+                Push( flags.value );
+                Push16( IP );
+
+                // Set interrupt flag and jump
+                flags.I = 1;
+                IP = Read16( 0, id << 1 );
+            }
+        }
+
+        // Returns from an interrupt
+        void ReturnFromInterrupt() {
+            IP = Pop16();
+            flags.value = Pop();
         }
     };
 

@@ -131,7 +131,7 @@ void Micro16::Run() {
         0x00, 0xC0, 0xC8, 0xF7, 0x51, 0x53, 0x5B, 0xA0, 0x00, 0x02, 0xAC, 0x5A,
         0x02, 0x00, 0x5A, 0x59, 0x00, 0xCA, 0xFE,
     };
-    memcpy( memory.data() + 0x2000, program, sizeof(program) );
+    memcpy( memory.data() + 0x8000, program, sizeof(program) );
 
     while ( window->IsRunning() ) {
         window->PollEvents();
@@ -141,7 +141,7 @@ void Micro16::Run() {
         // Basic state management
         if ( window->IsKeyPressed( MiDi16::KEY_F5 ) ) {
             cpu.Reset();
-            cpu.CS = 0x200; // Hardcode the code segment
+            cpu.CS = 0x800; // Hardcode the code segment
             state = GAME;
         }
         else if ( window->IsKeyPressed( MiDi16::KEY_ESC ) ) {

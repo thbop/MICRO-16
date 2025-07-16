@@ -147,6 +147,10 @@ void BetterThanPico::Execute() {
         case INS_JGE:     JumpCondition( flags.N );                     break;
         case INS_JMP:     Jump();                                       break;
         case INS_LJMP:    LongJump();                                   break;
+
+        // Interrupts
+        case INS_INT:     Interrupt( Fetch() );                         break;
+        case INS_RTI:     ReturnFromInterrupt();                        break;
     }
 }
 
