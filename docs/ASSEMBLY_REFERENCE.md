@@ -7,6 +7,9 @@
 - [Linker Directives](#linker-directives)
 
 ## Registers
+
+All registers are 16 bit besides the flags.
+
 ### General purpose
 - Accumulator (A)
 - Base (B)
@@ -22,11 +25,11 @@
 Check out the [assembly guide](ASSEMBLY_GUIDE.md) for more information about segmentation.
 
 ### Flags
-- Carry flag (C)
-- Zero flag (Z)
-- Overflow flag (V)
-- Negative flag (N)
-- Interrupt flag (I)
+- Carry flag (CF)
+- Zero flag (ZF)
+- Overflow flag (VF)
+- Negative flag (NF)
+- Interrupt flag (IF)
 
 ## Addressing Modes
 
@@ -49,6 +52,8 @@ Check out the [assembly guide](ASSEMBLY_GUIDE.md) for more information about seg
 
 
 ## Instructions
+
+For opcodes, check the [Instructions.hpp](../src/btp6000/Instructions.hpp) file.
 
 | Name  | Addressing Modes                   | Description                          |
 |-------|------------------------------------|--------------------------------------|
