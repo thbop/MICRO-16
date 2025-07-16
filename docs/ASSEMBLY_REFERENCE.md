@@ -32,6 +32,13 @@ Check out the [assembly guide](ASSEMBLY_GUIDE.md) for more information about seg
 - Negative flag (NF)
 - Interrupt flag (IF)
 
+### Program
+- Instruction Pointer (IP)
+
+### Stack
+- Stack Pointer (SP)
+- Base Pointer (BP)
+
 ## Addressing Modes
 
 | Name  | Description                    |
@@ -101,8 +108,8 @@ For opcodes, check the [Instructions.hpp](../src/btp6000/Instructions.hpp) file.
 | POPX  | NONE                               | Pops X from the stack                |
 | PUSHY | NONE                               | Pushes Y to the stack                |
 | POPY  | NONE                               | Pops Y from the stack                |
-| ENTER | NONE                               | Enter stack frame (push bp, bp = sp) |
-| LEAVE | NONE                               | Exit stack frame (so = bp, pop bp)   |
+| ENTER | NONE                               | Enter stack frame (push BP, BP = SP) |
+| LEAVE | NONE                               | Exit stack frame (SP = BP, pop BP)   |
 | CALL  | IM16                               | Calls a function (push IP, jump)     |
 | RET   | NONE                               | Returns from a function (pop IP)     |
 | CMP   | NONE, IM16, SOI, SPIOI, DOI, DPIOI | Compares a value with A              |
