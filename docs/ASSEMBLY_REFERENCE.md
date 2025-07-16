@@ -25,6 +25,13 @@ All registers are 16 bit besides the flags.
 
 Check out the [assembly guide](ASSEMBLY_GUIDE.md) for more information about segmentation.
 
+### Program
+- Instruction Pointer (IP)
+
+### Stack
+- Stack Pointer (SP)
+- Base Pointer (BP)
+
 ### Flags
 - Carry flag (CF)
 - Zero flag (ZF)
@@ -32,12 +39,6 @@ Check out the [assembly guide](ASSEMBLY_GUIDE.md) for more information about seg
 - Negative flag (NF)
 - Interrupt flag (IF)
 
-### Program
-- Instruction Pointer (IP)
-
-### Stack
-- Stack Pointer (SP)
-- Base Pointer (BP)
 
 ## Addressing Modes
 
