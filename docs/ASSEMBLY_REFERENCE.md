@@ -15,13 +15,13 @@
 - X-index (X)
 - Y-pointer (Y)
 
-### Segment
+### Segments
 - Stack Segment (SS)
 - Code Segment (CS)
 - Data Segment (DS)
 Check out the [assembly guide](ASSEMBLY_GUIDE.md) for more information about segmentation.
 
-## Flag
+## Flags
 - Carry flag (C)
 - Zero flag (Z)
 - Overflow flag (V)
