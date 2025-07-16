@@ -22,6 +22,7 @@ All registers are 16 bit besides the flags.
 - Stack Segment (SS)
 - Code Segment (CS)
 - Data Segment (DS)
+
 Check out the [assembly guide](ASSEMBLY_GUIDE.md) for more information about segmentation.
 
 ### Flags
