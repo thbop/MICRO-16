@@ -58,6 +58,22 @@ Essentially, to organize memory access we could choose to break our memory up in
 
 To fix this issue, we could instead make each segment quite large (say 0xFFFF bytes), but offset each overlapping segment by 16 bytes. Now segments can be large (0xFFFF) or small (0x10) and will at most only waste 15 bytes (which is not too bad!).
 
+## Bracket Syntax
+
+In x86 and btp6k assembly you will find a bracket syntax to describe addressing modes. For example:
+```x86asm
+lda [43]
+
+lda [[bp+23]+6]
+```
+
+If you are familiar with C, think of brackets like pointers. Within the bracket is a memory address, outside the bracket is the value at that memory address. For example:
+```x86asm
+sta [34] ; Stores A at DS:34
+
+sta [[34]+0] ; Stores A at the memory address found in DS:34 but plus zero
+```
+
 ## The Stack
 
 The stack is a fairly basic and beginner-friendly data structure that is built into many CPUs. Essentially, the stack is a first-in-last-out data structure. You can push stuff on top and you can take stuff off the top. Let's have an example, say we have a basic function:

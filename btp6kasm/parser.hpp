@@ -137,9 +137,9 @@ const std::unordered_map<std::string, Info> instructions = {
     { "ret",   { INS_RET, NONE } },
 
     // Misc transfers
-    { "tssb",  { INS_TSSB, NONE } },
-    { "tcsb",  { INS_TCSB, NONE } },
-    { "tdsb",  { INS_TDSB, NONE } },
+    { "tssa",  { INS_TSSA, NONE } },
+    { "tcsa",  { INS_TCSA, NONE } },
+    { "tdsa",  { INS_TDSA, NONE } },
 
     // Jump stuff
     { "cmp",   { INS_CMP, NONE | IM16 | SOI | SPIOI | DOI | DPIOI } },

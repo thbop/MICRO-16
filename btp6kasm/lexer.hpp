@@ -64,7 +64,7 @@ std::vector<std::string> instructions = {
     "ldy", "sty", "tya", "tyb", "tyx", "tyss", "tycs", "tyds",
     "pusha", "popa", "pushb", "popb", "pushx", "popx", "pushy", "popy",
     "enter", "leave", "call", "ret",
-    "tssb", "tcsb", "tdsb",
+    "tssa", "tcsa", "tdsa",
     "cmp", "je", "jne", "jg", "jge", "jmp", "ljmp",
     "int", "rti",
 };

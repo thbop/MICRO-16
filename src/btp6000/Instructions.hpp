@@ -123,9 +123,9 @@ enum Instructions {
     INS_RET     = 0x5B, // Return from a function ( pop IP )
 
     // Misc transfers
-    INS_TSSB    = 0x5C, // B = SS
-    INS_TCSB    = 0x5D, // B = CS
-    INS_TDSB    = 0x5E, // B = DS
+    INS_TSSA    = 0x5C, // A = SS
+    INS_TCSA    = 0x5D, // A = CS
+    INS_TDSA    = 0x5E, // A = DS
 
     // Control flow
     INS_CMP     = 0xC0, // Compare A with B
