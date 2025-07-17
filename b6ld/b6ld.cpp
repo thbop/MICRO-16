@@ -20,8 +20,22 @@
 * SOFTWARE.
 */
 
+#include <iostream>
+
+#include "settings.hpp"
+
 
 int main( int argc, char **argv ) {
+    Settings settings;
+    settings.Parse( argc, argv );
+
+    std::cout << "include stdlib: " << settings.includeStandardLibrary << '\n';
+
+    std::cout << "Input Files:\n";
+    for ( auto it : settings.inputFiles )
+        std::cout << '\t' << it << '\n';
     
+    std::cout << "Output file: " << settings.outputFile << '\n';
+
     return 0;
 }

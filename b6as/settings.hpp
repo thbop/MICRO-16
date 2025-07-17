@@ -28,13 +28,13 @@
 #include <string>
 
 const char settingsHelpMessage[] =
-"Better Than Pico 6000 Assembler\n"
+"BetterThanPico 6000 Assembler\n"
 "Arguments:\n"
 "    -h - Help message\n"
 "    -o - Output file\n"
-"    default - Fnput file\n"
+"    default - Input file\n"
 "\n\nExample:\n"
-"    btp6kasm test.asm -o test.o\n";
+"    b6as test.asm -o test.o\n";
 
 // Parses and stores assembler settings from command line arguments
 class Settings {
