@@ -433,6 +433,12 @@ void Parser::ParseLinkerDirective( token::LinkerDirective *token ) {
                 std::cout << "ERROR: Cannot make sub-label \"" << label->value
                     << "\" external!\n";
         }
+        else if ( token->value == "db" && number != nullptr ) {
+            if ( number->sizeHint == 1 )
+                output.code->Append( (uint8_t)number->value );
+            else
+                output.code->Append( number->value );
+        }
     }
 }
 

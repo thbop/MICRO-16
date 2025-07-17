@@ -78,7 +78,7 @@ std::vector<std::string> registers = {
 
 // Linker directives
 std::vector<std::string> linkerDirectives = {
-    ".org", "extern"
+    ".org", "extern", "db"
 };
 
 // Separators
@@ -146,13 +146,15 @@ public:
 class Number : public Token {
 public:
     uint16_t value;
+    int sizeHint;
 
     // Constructors
     Number() {
         type = NUMBER;
     }
-    Number( uint16_t value ) : Number() {
+    Number( uint16_t value, int sizeHint ) : Number() {
         this->value = value;
+        this->sizeHint = sizeHint;
     }
     // A number cannot be a validator
     bool Validate( int lineNumber ) override {
@@ -531,15 +533,15 @@ private:
 
 // Creates a new token given the raw token
 token::Token *Line::NewToken( std::string &rawToken ) {
-    rawToken = stringextra::tolower( rawToken );
+    std::string lowerToken = stringextra::tolower( rawToken );
 
     // Instruction ------------------------------------------------------------
     if (
-        stringextra::find_str_in_list( rawToken, token::instructions ) != -1
+        stringextra::find_str_in_list( lowerToken, token::instructions ) != -1
     )
         return new token::Instruction( rawToken );
     // Register ---------------------------------------------------------------
-    if ( stringextra::find_str_in_list( rawToken, token::registers ) != -1 )
+    if ( stringextra::find_str_in_list( lowerToken, token::registers ) != -1 )
         return new token::Register( rawToken );
     // Linker Directive -------------------------------------------------------
     if (
@@ -550,7 +552,10 @@ token::Token *Line::NewToken( std::string &rawToken ) {
         return new token::LinkerDirective( rawToken );
     // Number -----------------------------------------------------------------
     if ( stringextra::isint( rawToken ) )
-        return new token::Number( stringextra::str_to_int( rawToken ) );
+        return new token::Number(
+            stringextra::str_to_int( rawToken ),
+            stringextra::str_int_size_hint( rawToken )
+        );
     // Separator --------------------------------------------------------------
     if (
         rawToken.size() == 1 &&
