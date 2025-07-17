@@ -32,7 +32,7 @@
 #include "stdio.h"
 #include "stdint.h"
 
-#include "../btp6kasm/lexer.hpp"
+#include "../b6as/lexer.hpp"
 using namespace lex;
 
 

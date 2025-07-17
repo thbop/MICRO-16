@@ -1,4 +1,4 @@
-ASM = ../../build/btp6kasm
+ASM = ../../build/b6as
 BUILD_DIR = ../../build/stdlib
 
 all: lib

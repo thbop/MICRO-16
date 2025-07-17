@@ -32,10 +32,10 @@
 #include "lexer.hpp"
 #include "parser.hpp"
 
-int main( int argc, char **args ) {
+int main( int argc, char **argv ) {
     // Create the settings object and parse arguments
     Settings settings;
-    settings.Parse( argc, args );
+    settings.Parse( argc, argv );
 
     // Lex the file
     lex::Lexer lexer( &settings );

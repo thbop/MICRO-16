@@ -1,3 +1,3 @@
 # Cartridge Linker
 
-Links raw object files into a cartridge.
+Not actually the linker any more. Just the editor.
