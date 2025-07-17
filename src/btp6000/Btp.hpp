@@ -346,10 +346,12 @@ namespace btp {
             if ( id < BTP_INTERRUPT_COUNT ) {
                 // Save current flags and IP
                 Push( flags.value );
+                Push16( CS );
                 Push16( IP );
 
                 // Set interrupt flag and jump
                 flags.I = 1;
+                CS = 0x0000;
                 IP = Read16( 0, id << 1 );
             }
         }
@@ -357,6 +359,7 @@ namespace btp {
         // Returns from an interrupt
         void ReturnFromInterrupt() {
             IP = Pop16();
+            CS = Pop16();
             flags.value = Pop();
         }
     };

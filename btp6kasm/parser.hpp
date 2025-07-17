@@ -82,6 +82,9 @@ struct Info {
 
 // Instructions
 const std::unordered_map<std::string, Info> instructions = {
+    // The fundamental "instruction"
+    { "db",    { 0, IM8 | IM16 } },
+
     // Accumulator stuff
     { "lda",   { INS_LDA_IM, IM16 | SOI | SPIOI | DOI | DPIOI } },
     { "sta",   { INS_STA_SO - 1, SOI | SPIOI | DOI | DPIOI } },
@@ -149,6 +152,10 @@ const std::unordered_map<std::string, Info> instructions = {
     { "jge",   { INS_JGE, IM8 } },
     { "jmp",   { INS_JMP, IM8 } },
     { "ljmp",  { INS_LJMP, IM16 } },
+
+    // Interrupts
+    { "int",   { INS_INT, IM8 } },
+    { "rti",   { INS_RTI, NONE } },
 
 };
 
@@ -433,12 +440,12 @@ void Parser::ParseLinkerDirective( token::LinkerDirective *token ) {
                 std::cout << "ERROR: Cannot make sub-label \"" << label->value
                     << "\" external!\n";
         }
-        else if ( token->value == "db" && number != nullptr ) {
-            if ( number->sizeHint == 1 )
-                output.code->Append( (uint8_t)number->value );
-            else
-                output.code->Append( number->value );
-        }
+        // else if ( token->value == "db" && number != nullptr ) {
+        //     if ( number->sizeHint == 1 )
+        //         output.code->Append( (uint8_t)number->value );
+        //     else
+        //         output.code->Append( number->value );
+        // }
     }
 }
 
@@ -500,10 +507,12 @@ void Parser::ParseCode( token::Instruction *token ) {
         }
 
         // Get opcode
-        uint8_t opcode =
-            info.baseOpcode + ins::GetAddressingModeOffset( addressingMode );
-        
-        output.code->Append( opcode );
+        if ( token->value != "db" ) {
+            uint8_t opcode =
+                info.baseOpcode + ins::GetAddressingModeOffset( addressingMode );
+            
+            output.code->Append( opcode );
+        }
 
         // Add immediate values
         switch ( addressingMode ) {

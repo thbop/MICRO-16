@@ -1,4 +1,4 @@
-.org 2000h
+.org 8000h
 
 _start:
     jmp main
@@ -64,9 +64,12 @@ pineapple_sprite:
 
 main:
     lda 0x800
-    tass         ; Stack Segment = 0x200
+    tass         ; Stack Segment = 0x800
 
-    call pineapple_sprite
+    ; call pineapple_sprite
+
+    ldb 0x03
+    int 0x01     ; Should set the sprite peach
 
 
 halt:

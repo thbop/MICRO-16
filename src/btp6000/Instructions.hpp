@@ -143,10 +143,10 @@ enum Instructions {
 
     // Interrupts
     INS_INT     = 0x00, // Interrupt 
-                        //     push flags and IP, then reference the
+                        //     push flags, CS, and IP, then reference the
                         //     interrupt jump table, and jump to the interrupt
                         //     handler
-    INS_RTI     = 0x01, // Return from interrupt (pop IP and flags)
+    INS_RTI     = 0x01, // Return from interrupt (pop IP, CS, and flags)
 
     // Arithmetic
     

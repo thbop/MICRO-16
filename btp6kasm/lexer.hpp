@@ -58,6 +58,7 @@ enum Type {
 // String listings
 // Instructions
 std::vector<std::string> instructions = {
+    "db", // The fundamental "instruction"
     "lda", "sta", "tab", "tax", "tay", "tass", "tacs", "tads",
     "ldb", "stb", "tba", "tbx", "tby", "tbss", "tbcs", "tbds",
     "ldx", "stx", "txa", "txb", "txy", "txss", "txcs", "txds",
@@ -78,7 +79,7 @@ std::vector<std::string> registers = {
 
 // Linker directives
 std::vector<std::string> linkerDirectives = {
-    ".org", "extern", "db"
+    ".org", "extern"
 };
 
 // Separators

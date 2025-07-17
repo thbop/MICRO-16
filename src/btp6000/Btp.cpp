@@ -29,8 +29,8 @@ void BetterThanPico::Execute() {
     uint8_t instruction = Fetch();
     #ifdef BTP_DEBUG
     printf(
-        "INS: %02X IP: %02X A: %02X B: %02X X: %02X Y: %02X\n",
-        instruction, IP, A.value, B.value, X, Y
+        "INS: %02X CS:IP: %02X:%02X A: %02X B: %02X X: %02X Y: %02X\n",
+        instruction, CS, IP, A.value, B.value, X, Y
     );
     #endif
 
