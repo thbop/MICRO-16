@@ -25,6 +25,7 @@
 
 // Object constructor
 
+#include <fstream>
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -32,8 +33,9 @@
 #include "stdio.h"
 #include "stdint.h"
 
-#include "../b6as/lexer.hpp"
+#ifdef PARSER_HPP
 using namespace lex;
+#endif
 
 
 #define OBJECT_METADATA_END          0xFF
@@ -89,6 +91,11 @@ public:
         return data.size();
     }
 
+    // Resizes the buffer
+    void resize( size_t newSize ) {
+        data.resize( newSize );
+    }
+
     #ifdef DEBUG
 
     // Prints a Bytes object's bytes
@@ -124,7 +131,7 @@ public:
     virtual ~Chunk() = default;
 
     // Construct the correct bytes for the particular chunk type
-    virtual void Build() {}
+    virtual void Dump() {}
 
 };
 
@@ -177,8 +184,8 @@ public:
         }
     }
 
-    // Build the actual binary data
-    void Build() override;
+    // Dump the actual binary data
+    void Dump() override;
 
     // Append immediate label data
     void AppendIm( ImLabelData &data ) {
@@ -197,15 +204,15 @@ private:
     std::vector<ImLabelData> imData;
 };
 
-// Build the actual binary data
-void Label::Build() {
+// Dump the actual binary data
+void Label::Dump() {
     if ( isGlobalLabel ) {
         Append( (uint16_t)0x0000 ); // Size of label section
 
-        // Build and append external labels
+        // Dump and append external labels
         for ( auto it : subLabels ) {
             if ( it.second->external ) {
-                it.second->Build();
+                it.second->Dump();
                 Append( it.second );
             }
         }
@@ -254,19 +261,22 @@ public:
         type = HEADER;
     }
 
-    // Build the header
-    void Build() override {
+    // Dump the header
+    void Dump() override {
         Append( origin );
 
         // Labels
-        labels.Build();
+        labels.Dump();
         Append( &labels );
     }
 
+    #ifdef PARSER_HPP
     // Returns a pointer to a label or sub-label from that label's token
     Label *GetLabelFromToken( token::Label *token );
+    #endif
 };
 
+#ifdef PARSER_HPP
 // Returns a pointer to a label or sub-label from that label's token
 Label *Header::GetLabelFromToken( token::Label *token ) {
     Label *label;
@@ -283,6 +293,7 @@ Label *Header::GetLabelFromToken( token::Label *token ) {
 
     return label;
 }
+#endif
 
 // Instruction chunk
 class Code : public Chunk {
@@ -311,7 +322,7 @@ public:
         chunks.push_back( code );
     }
 
-    // Free up chunks when we're done building them
+    // Free up chunks when we're done Dumping them
     ~Object() {
         for ( auto chunk : chunks )
             delete chunk;
@@ -323,12 +334,15 @@ public:
     }
 
     // Construct the chunks into the buffer with the correct metadata
-    void Build();
+    void Dump();
+
+    // Construct object chunks from raw binary data (opposite of Dump)
+    void Load( const std::string &objectFileName );
 
 };
 
 // Construct the chunks into the buffer with the correct metadata
-void Object::Build() {
+void Object::Dump() {
     // Each metadata entry is 3 bytes, the first byte gives the length of the
     // metadata section
     // This is kinda like a very basic file system to guide the linker
@@ -340,7 +354,7 @@ void Object::Build() {
         // And a pointer (u16) to that chunk
         Append( pointer );
 
-        chunk->Build();
+        chunk->Dump();
         pointer += (uint16_t)chunk->size(); // Increment to the next chunk
     }
     buffer()[0] = (uint8_t)size();
@@ -353,6 +367,29 @@ void Object::Build() {
     for ( Chunk *chunk : chunks ) {
         Append( chunk );
     }
+}
+
+// Construct object chunks from raw binary data (opposite of Dump)
+void Object::Load( const std::string &objectFileName ) {
+    std::ifstream file( objectFileName, std::ios_base::binary );
+
+    if ( !file.is_open() ) {
+        std::cout << "Could not find object file \"" << objectFileName
+            << "\"!\n";
+        return;
+    }
+
+    // Calculate file size
+    std::streamsize fileSize = file.tellg();
+    file.seekg( 0, std::ios::end );
+    fileSize = file.tellg() - fileSize;
+    file.seekg( 0, std::ios::beg );
+
+    // Resize and copy the bytes into the buffer
+    resize( fileSize );
+    file.read( (char*)buffer(), fileSize );
+
+    file.close();
 }
 
 }

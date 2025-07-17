@@ -569,7 +569,7 @@ void Parser::ParseScope( Scope *scope ) {
 void Parser::Parse() {
     ParseScope( lexer->scopeStack.back() );
     if ( !error ) {
-        output.Build();
+        output.Dump();
 
         file.write( (const char*)output.buffer(), output.size() );
     }

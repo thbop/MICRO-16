@@ -20,22 +20,22 @@
 * SOFTWARE.
 */
 
+#define DEBUG
+
 #include <iostream>
 
 #include "settings.hpp"
+#include "../include/Object.hpp"
 
 
 int main( int argc, char **argv ) {
     Settings settings;
     settings.Parse( argc, argv );
 
-    std::cout << "include stdlib: " << settings.includeStandardLibrary << '\n';
+    obj::Object o;
+    o.Load( settings.inputFiles[0] );
+    o.PrintBytes();
 
-    std::cout << "Input Files:\n";
-    for ( auto it : settings.inputFiles )
-        std::cout << '\t' << it << '\n';
-    
-    std::cout << "Output file: " << settings.outputFile << '\n';
 
     return 0;
 }
