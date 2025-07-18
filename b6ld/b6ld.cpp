@@ -20,21 +20,20 @@
 * SOFTWARE.
 */
 
-#define DEBUG
-
 #include <iostream>
 
 #include "settings.hpp"
 #include "../include/Object.hpp"
-
+#include "../include/Cartridge.hpp"
 
 int main( int argc, char **argv ) {
     Settings settings;
     settings.Parse( argc, argv );
 
-    obj::Object o;
-    o.Load( settings.inputFiles[0] );
-    o.PrintBytes();
+    Cartridge cart;
+
+    cart.Load( settings.inputFiles );
+    cart.Dump( settings.outputFile );
 
 
     return 0;

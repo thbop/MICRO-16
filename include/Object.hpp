@@ -33,6 +33,8 @@
 #include "stdio.h"
 #include "stdint.h"
 
+#include "Bytes.hpp"
+
 #ifdef PARSER_HPP
 using namespace lex;
 #endif
@@ -44,74 +46,6 @@ using namespace lex;
 // Object namespace
 namespace obj {
 
-// A byte storage class
-class Bytes {
-public:
-    // Empty constructor
-    Bytes() {}
-
-    // Appends a byte to the buffer
-    void Append( uint8_t byte ) {
-        data.push_back( byte );
-        // PrintBytes();
-    }
-
-    // Appends a word to the buffer
-    void Append( uint16_t word ) {
-        data.push_back( (uint8_t)( word & 0xFF ) );
-        data.push_back( (uint8_t)( word >> 8 ) );
-        // PrintBytes();
-    }
-
-    // Appends a string of bytes to the buffer
-    void Append( uint8_t *bytes, size_t size ) {
-        size_t oldSize = data.size();
-        data.resize( oldSize + size );
-
-        memcpy( data.data() + oldSize, bytes, size );
-    }
-
-    // Appends a Bytes object to the buffer
-    void Append( Bytes *bytes ) {
-        Append( (uint8_t*)bytes->buffer(), bytes->size() );
-    }
-
-    // Appends a null-terminated string to the buffer
-    void Append( std::string &str ) {
-        Append( (uint8_t*)str.c_str(), str.size() + 1 );
-    }
-
-    // Returns the raw byte buffer
-    uint8_t *buffer() const {
-        return (uint8_t*)data.data();
-    }
-
-    // Returns the buffer size
-    size_t size() const {
-        return data.size();
-    }
-
-    // Resizes the buffer
-    void resize( size_t newSize ) {
-        data.resize( newSize );
-    }
-
-    #ifdef DEBUG
-
-    // Prints a Bytes object's bytes
-    void PrintBytes() {
-        std::cout << "Bytes( ";
-        for ( auto byte : data )
-            printf("%02X ", byte);
-        
-        std::cout << ")\n";
-    }
-
-    #endif
-
-private:
-    std::vector<uint8_t> data;
-};
 
 // Byte chunk storage class
 class Chunk : public Bytes {
@@ -120,7 +54,6 @@ public:
     enum Type {
         HEADER,   // Basic information about the whole file for the linker
         CODE,     // Code blocks
-        DATA,     // Data blocks
     };
     int type = HEADER;
 
@@ -132,6 +65,9 @@ public:
 
     // Construct the correct bytes for the particular chunk type
     virtual void Dump() {}
+
+    // Load the chunk from raw bytes
+    virtual void Load() {}
 
 };
 
@@ -265,9 +201,16 @@ public:
     void Dump() override {
         Append( origin );
 
-        // Labels
+        // External labels
         labels.Dump();
         Append( &labels );
+    }
+
+    // Loads the raw header bytes
+    void Load() override {
+        origin = *(uint16_t*)buffer();
+
+        // External labels: TODO
     }
 
     #ifdef PARSER_HPP
@@ -303,9 +246,6 @@ public:
     }
 };
 
-// Data chunk does nothing special
-using Data = Chunk;
-
 // Class to manage the generated object
 class Object : public Bytes {
 public:
@@ -313,13 +253,12 @@ public:
     Header *header;
     Code *code;
 
-    // Setup basic object
-    Object() {
-        header = new Header();
-        code   = new Code();
+    // Empty constructor
+    Object() {}
 
-        chunks.push_back( header );
-        chunks.push_back( code );
+    // Loads the object file upon initialization
+    Object( const std::string &objectFileName ) {
+        Load( objectFileName );
     }
 
     // Free up chunks when we're done Dumping them
@@ -338,6 +277,19 @@ public:
 
     // Construct object chunks from raw binary data (opposite of Dump)
     void Load( const std::string &objectFileName );
+
+private:
+    // Just loads raw bytes from the supplied file into the object's bytes
+    // buffer
+    void LoadFromFile( const std::string &objectFileName );
+
+    int GetChunkEntryPos( int chunkEntry ) {
+        return chunkEntry * OBJECT_METADATA_ENTRY_LENGTH + 1;
+    }
+
+    // Parses a chunk entry and copies the appropriate bytes into the chunk,
+    // calls Chunk::Load(), and adds the chunk
+    void LoadChunk( Chunk *chunk, int chunkEntry );
 
 };
 
@@ -369,8 +321,9 @@ void Object::Dump() {
     }
 }
 
-// Construct object chunks from raw binary data (opposite of Dump)
-void Object::Load( const std::string &objectFileName ) {
+// Just loads raw bytes from the supplied file into the object's bytes
+// buffer
+void Object::LoadFromFile( const std::string &objectFileName ) {
     std::ifstream file( objectFileName, std::ios_base::binary );
 
     if ( !file.is_open() ) {
@@ -390,6 +343,63 @@ void Object::Load( const std::string &objectFileName ) {
     file.read( (char*)buffer(), fileSize );
 
     file.close();
+}
+
+// Parses a chunk entry and copies the appropriate bytes into the chunk,
+// calls Chunk::Load(), and adds the chunk
+void Object::LoadChunk( Chunk *chunk, int chunkEntry ) {
+    // Calculate chunk count
+    int chunkCount = ( buffer()[0] - 1 ) / OBJECT_METADATA_ENTRY_LENGTH;
+    int entryPos = GetChunkEntryPos( chunkEntry );
+
+    if ( chunkEntry > chunkCount )
+        return;
+
+    // Fetch start
+    uint16_t start = *(uint16_t*)( buffer() + entryPos + 1 );
+
+    // Calculate end
+    uint16_t end;
+    if ( chunkEntry == chunkCount - 1 ) // If last chunk, end = EOF
+        end = (uint16_t)size();
+    else                                // else, end = beginning of next chunk
+        end = *(uint16_t*)(
+            buffer() + entryPos + OBJECT_METADATA_ENTRY_LENGTH + 1
+        );
+
+    // Do the actual byte loading
+    chunk->Append( buffer() + start, end - start );
+    
+    chunk->Load();
+    AddChunk( chunk );
+}
+
+// Construct object chunks from raw binary data (opposite of Dump)
+void Object::Load( const std::string &objectFileName ) {
+    LoadFromFile( objectFileName );
+
+    // Calculate chunk count
+    int chunkCount = ( buffer()[0] - 1 ) / OBJECT_METADATA_ENTRY_LENGTH;
+
+    // Iterate through chunk entries and add chunks
+    for ( int i = 0; i < chunkCount; i++ ) {
+        switch ( buffer()[GetChunkEntryPos( i )] ) {
+            case Chunk::HEADER: {
+                header = new Header();
+                LoadChunk( header, i );
+                break;
+            }
+            case Chunk::CODE: {
+                code = new Code();
+                LoadChunk( code, i );
+                break;
+            }
+            default:
+                std::cout << "Invalid chunk type \""
+                    << buffer()[GetChunkEntryPos( i )] << "\"!\n";
+                break;
+        }
+    }
 }
 
 }

@@ -569,6 +569,12 @@ void Parser::ParseScope( Scope *scope ) {
 void Parser::Parse() {
     ParseScope( lexer->scopeStack.back() );
     if ( !error ) {
+        output.header = new obj::Header();
+        output.code = new obj::Code();
+
+        output.AddChunk( output.header );
+        output.AddChunk( output.code );
+
         output.Dump();
 
         file.write( (const char*)output.buffer(), output.size() );
