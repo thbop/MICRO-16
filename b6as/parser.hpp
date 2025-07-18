@@ -567,11 +567,11 @@ void Parser::ParseScope( Scope *scope ) {
 
 // Parse the lex structure and output the file
 void Parser::Parse() {
+    output.header = new obj::Header();
+    output.code = new obj::Code();
+
     ParseScope( lexer->scopeStack.back() );
     if ( !error ) {
-        output.header = new obj::Header();
-        output.code = new obj::Code();
-
         output.AddChunk( output.header );
         output.AddChunk( output.code );
 

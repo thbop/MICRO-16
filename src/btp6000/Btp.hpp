@@ -23,7 +23,7 @@
 #ifndef BTP_HPP
 #define BTP_HPP
 
-#define BTP_DEBUG
+// #define BTP_DEBUG
 
 #define BTP_INTERRUPT_COUNT 16
 

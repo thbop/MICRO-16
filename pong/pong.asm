@@ -1,7 +1,7 @@
 .org 8000h
 
 _start:
-    jmp main
+    ljmp main
 
 
 ; Sets the first sprite and palette to resemble a pineapple
@@ -66,10 +66,10 @@ main:
     lda 0x800
     tass         ; Stack Segment = 0x800
 
-    ; call pineapple_sprite
+    call pineapple_sprite
 
-    ldb 0x03
-    int 0x01     ; Should set the sprite peach
+    ; ldb 0x03
+    ; int 0x01     ; Should set the sprite peach
 
 
 halt:
