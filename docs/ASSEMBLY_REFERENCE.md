@@ -132,6 +132,12 @@ For opcodes, check the [Instructions.hpp](../src/btp6000/Instructions.hpp) file.
 | DEX   | NONE                                   | Decrement X                          |
 | INY   | NONE                                   | Increment Y                          |
 | DEY   | NONE                                   | Decrement Y                          |
+| AND   | NONE (B), IM16, SOI, SPIOI, DOI, DPIOI | A = A & value                        |
+| OR    | NONE (B), IM16, SOI, SPIOI, DOI, DPIOI | A = A | value                        |
+| XOR   | NONE (B), IM16, SOI, SPIOI, DOI, DPIOI | A = A ^ value                        |
+| SEC   | NONE                                   | Sets carry flag                      |
+| CLC   | NONE                                   | Clears carry flag                    |
+| CLV   | NONE                                   | Clears overflow flag                 |
 
 ## Linker Directives
 

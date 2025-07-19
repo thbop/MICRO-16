@@ -171,6 +171,14 @@ const std::unordered_map<std::string, Info> instructions = {
     { "iny",   { INS_INY, NONE } },
     { "dey",   { INS_DEY, NONE } },
 
+    // Bit tests
+    { "and",   { INS_AND, NONE | IM16 | SOI | SPIOI | DOI | DPIOI } },
+    { "or",    { INS_OR,  NONE | IM16 | SOI | SPIOI | DOI | DPIOI } },
+    { "xor",   { INS_XOR, NONE | IM16 | SOI | SPIOI | DOI | DPIOI } },
+    { "sec",   { INS_SEC, NONE } },
+    { "clc",   { INS_CLC, NONE } },
+    { "clv",   { INS_CLV, NONE } },
+
 };
 
 // Returns the addressing mode of an instruction given its token

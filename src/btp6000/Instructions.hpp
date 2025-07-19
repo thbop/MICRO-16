@@ -186,6 +186,35 @@ enum Instructions {
     INS_DEX     = 0x2D, // Decrement X
     INS_INY     = 0x2E, // Increment Y
     INS_DEY     = 0x2F, // Decrement Y
+
+    // Bit tests
+    INS_AND     = 0xE0, // AND A with B
+    INS_AND_IM  = 0xE1, // AND A with im
+    INS_AND_SO  = 0xE2, // AND A with [SS:BP+im]
+    INS_AND_SPO = 0xE3, // AND A with [[SS:BP+im]+im]im]
+    INS_AND_DO  = 0xE4, // AND A with [DS:im]
+    INS_AND_DPO = 0xE5, // AND A with [[DS:im]+im]
+
+    INS_OR      = 0xE6, // OR A with B
+    INS_OR_IM   = 0xE7, // OR A with im
+    INS_OR_SO   = 0xE8, // OR A with [SS:BP+im]
+    INS_OR_SPO  = 0xE9, // OR A with [[SS:BP+im]+im]im]
+    INS_OR_DO   = 0xEA, // OR A with [DS:im]
+    INS_OR_DPO  = 0xEB, // OR A with [[DS:im]+im]
+
+    // Some flag stuff
+    INS_SEC     = 0xEC, // Set carry flag
+    INS_CLC     = 0xED, // Clear carry flag
+    INS_CLV     = 0xEE, // Clear overflow flag
+
+    // More bit tests
+    INS_XOR     = 0x30, // XOR A with B
+    INS_XOR_IM  = 0x31, // XOR A with im
+    INS_XOR_SO  = 0x32, // XOR A with [SS:BP+im]
+    INS_XOR_SPO = 0x33, // XOR A with [[SS:BP+im]+im]im]
+    INS_XOR_DO  = 0x34, // XOR A with [DS:im]
+    INS_XOR_DPO = 0x35, // XOR A with [[DS:im]+im]
+
 };
 
 #endif

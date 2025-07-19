@@ -170,11 +170,6 @@ void BetterThanPico::Execute() {
         case INS_SUB_DO:  BTP_MATH_OP( A, LoadOffsetIm( DS, 0 ), - )    break;
         case INS_SUB_DPO:
             BTP_MATH_OP( A, LoadPointerImOffsetIm( DS, 0, 0 ), - )      break;
-        
-        case INS_INA:     BTP_MATH_OP( A, 1, + )                        break;
-        case INS_DEA:     BTP_MATH_OP( A, 1, - )                        break;
-        case INS_INB:     BTP_MATH_OP( B, 1, + )                        break;
-        case INS_DEB:     BTP_MATH_OP( B, 1, - )                        break;
 
         case INS_SHR:     BTP_MATH_OP( A, B, >> )                       break;
         case INS_SHR_IM:  BTP_MATH_OP( A, Fetch16(), >> )               break;
@@ -194,10 +189,47 @@ void BetterThanPico::Execute() {
         case INS_SHL_DPO:
             BTP_MATH_OP( A, LoadPointerImOffsetIm( DS, 0, 0 ), << )     break;
         
+        case INS_INA:     BTP_MATH_OP( A, 1, + )                        break;
+        case INS_DEA:     BTP_MATH_OP( A, 1, - )                        break;
+        case INS_INB:     BTP_MATH_OP( B, 1, + )                        break;
+        case INS_DEB:     BTP_MATH_OP( B, 1, - )                        break;
         case INS_INX:     BTP_MATH_OP( X, 1, + )                        break;
         case INS_DEX:     BTP_MATH_OP( X, 1, - )                        break;
         case INS_INY:     BTP_MATH_OP( Y, 1, + )                        break;
         case INS_DEY:     BTP_MATH_OP( Y, 1, - )                        break;
+
+        // Bit tests
+        case INS_AND:     BTP_MATH_OP( A, B, & )                        break;
+        case INS_AND_IM:  BTP_MATH_OP( A, Fetch16(), & )                break;
+        case INS_AND_SO:  BTP_MATH_OP( A, LoadOffsetIm( SS, BP ), & )   break;
+        case INS_AND_SPO:
+            BTP_MATH_OP( A, LoadPointerImOffsetIm( SS, BP, 0 ), & )     break;
+        case INS_AND_DO:  BTP_MATH_OP( A, LoadOffsetIm( DS, 0 ), & )    break;
+        case INS_AND_DPO:
+            BTP_MATH_OP( A, LoadPointerImOffsetIm( DS, 0, 0 ), & )      break;
+
+        case INS_OR:      BTP_MATH_OP( A, B, | )                        break;
+        case INS_OR_IM:   BTP_MATH_OP( A, Fetch16(), | )                break;
+        case INS_OR_SO:   BTP_MATH_OP( A, LoadOffsetIm( SS, BP ), | )   break;
+        case INS_OR_SPO:
+            BTP_MATH_OP( A, LoadPointerImOffsetIm( SS, BP, 0 ), | )     break;
+        case INS_OR_DO:   BTP_MATH_OP( A, LoadOffsetIm( DS, 0 ), | )    break;
+        case INS_OR_DPO:
+            BTP_MATH_OP( A, LoadPointerImOffsetIm( DS, 0, 0 ), | )      break;
+
+        case INS_XOR:     BTP_MATH_OP( A, B, ^ )                        break;
+        case INS_XOR_IM:  BTP_MATH_OP( A, Fetch16(), ^ )                break;
+        case INS_XOR_SO:  BTP_MATH_OP( A, LoadOffsetIm( SS, BP ), ^ )   break;
+        case INS_XOR_SPO:
+            BTP_MATH_OP( A, LoadPointerImOffsetIm( SS, BP, 0 ), ^ )     break;
+        case INS_XOR_DO:  BTP_MATH_OP( A, LoadOffsetIm( DS, 0 ), ^ )    break;
+        case INS_XOR_DPO:
+            BTP_MATH_OP( A, LoadPointerImOffsetIm( DS, 0, 0 ), ^ )      break;
+
+        // Flag stuff
+        case INS_SEC:     flags.C = 1;                                  break;
+        case INS_CLC:     flags.C = 0;                                  break;
+        case INS_CLV:     flags.V = 0;                                  break;
     }
 }
 

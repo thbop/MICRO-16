@@ -70,6 +70,8 @@ std::vector<std::string> instructions = {
     "int", "rti",
     "add", "sub", "ina", "dea", "inb", "deb",
     "shr", "shl", "inx", "dex", "iny", "dey",
+    "and", "or", "xor",
+    "sec", "clc", "clv",
 };
 
 // Registers
