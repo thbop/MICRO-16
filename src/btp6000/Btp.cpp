@@ -30,52 +30,52 @@ void BetterThanPico::Execute() {
     #ifdef BTP_DEBUG
     printf(
         "INS: %02X CS:IP: %02X:%02X A: %02X B: %02X X: %02X Y: %02X\n",
-        instruction, CS, IP, A.value, B.value, X, Y
+        instruction, CS, IP, A, B, X, Y
     );
     #endif
 
     switch ( instruction ) {
         // LDA
-        case INS_LDA_IM:  A.value = LoadImmediate();                    break;
-        case INS_LDA_SO:  A.value = LoadOffsetIm( SS, BP );             break;
-        case INS_LDA_SPO: A.value = LoadPointerImOffsetIm( SS, BP, 0 ); break;
-        case INS_LDA_DO:  A.value = LoadOffsetIm( DS, 0 );              break;
-        case INS_LDA_DPO: A.value = LoadPointerImOffsetIm( DS, 0, 0 );  break;
+        case INS_LDA_IM:  A = LoadImmediate();                          break;
+        case INS_LDA_SO:  A = LoadOffsetIm( SS, BP );                   break;
+        case INS_LDA_SPO: A = LoadPointerImOffsetIm( SS, BP, 0 );       break;
+        case INS_LDA_DO:  A = LoadOffsetIm( DS, 0 );                    break;
+        case INS_LDA_DPO: A = LoadPointerImOffsetIm( DS, 0, 0 );        break;
 
         // STA
-        case INS_STA_SO:  StoreOffsetIm( SS, BP, A.value );             break;
-        case INS_STA_SPO: StorePointerImOffsetIm( SS, BP, 0, A.value ); break;
-        case INS_STA_DO:  StoreOffsetIm( DS, 0, A.value );              break;
-        case INS_STA_DPO: StorePointerImOffsetIm( DS, 0, 0, A.value );  break;
+        case INS_STA_SO:  StoreOffsetIm( SS, BP, A );                   break;
+        case INS_STA_SPO: StorePointerImOffsetIm( SS, BP, 0, A );       break;
+        case INS_STA_DO:  StoreOffsetIm( DS, 0, A );                    break;
+        case INS_STA_DPO: StorePointerImOffsetIm( DS, 0, 0, A );        break;
 
         // TA-X
-        case INS_TAB:     B.value = A.value;                            break;
-        case INS_TAX:     X = A.value;                                  break;
-        case INS_TAY:     Y = A.value;                                  break;
-        case INS_TASS:    SS = A.value;                                 break;
-        case INS_TACS:    CS = A.value;                                 break;
-        case INS_TADS:    DS = A.value;                                 break;
+        case INS_TAB:     B = A;                                        break;
+        case INS_TAX:     X = A;                                        break;
+        case INS_TAY:     Y = A;                                        break;
+        case INS_TASS:    SS = A;                                       break;
+        case INS_TACS:    CS = A;                                       break;
+        case INS_TADS:    DS = A;                                       break;
 
         // LDB
-        case INS_LDB_IM:  B.value = LoadImmediate();                    break;
-        case INS_LDB_SO:  B.value = LoadOffset( SS, BP + X );           break;
-        case INS_LDB_SPO: B.value = LoadPointerOffset( SS, BP + X, Y ); break;
-        case INS_LDB_DO:  B.value = LoadOffset( DS, X );                break;
-        case INS_LDB_DPO: B.value = LoadPointerOffset( DS, X, Y );      break;
+        case INS_LDB_IM:  B = LoadImmediate();                          break;
+        case INS_LDB_SO:  B = LoadOffset( SS, BP + X );                 break;
+        case INS_LDB_SPO: B = LoadPointerOffset( SS, BP + X, Y );       break;
+        case INS_LDB_DO:  B = LoadOffset( DS, X );                      break;
+        case INS_LDB_DPO: B = LoadPointerOffset( DS, X, Y );            break;
 
         // STB
-        case INS_STB_SO:  StoreOffset( SS, BP + X, B.value );           break;
-        case INS_STB_SPO: StorePointerOffset( SS, BP + X, Y, B.value ); break;
-        case INS_STB_DO:  StoreOffset( DS, X, B.value );                break;
-        case INS_STB_DPO: StorePointerOffset( DS, X, Y, B.value );      break;
+        case INS_STB_SO:  StoreOffset( SS, BP + X, B );                 break;
+        case INS_STB_SPO: StorePointerOffset( SS, BP + X, Y, B );       break;
+        case INS_STB_DO:  StoreOffset( DS, X, B );                      break;
+        case INS_STB_DPO: StorePointerOffset( DS, X, Y, B );            break;
 
         // TB-X
-        case INS_TBA:     A.value = B.value;                            break;
-        case INS_TBX:     X = B.value;                                  break;
-        case INS_TBY:     Y = B.value;                                  break;
-        case INS_TBSS:    SS = B.value;                                 break;
-        case INS_TBCS:    CS = B.value;                                 break;
-        case INS_TBDS:    DS = B.value;                                 break;
+        case INS_TBA:     A = B;                                        break;
+        case INS_TBX:     X = B;                                        break;
+        case INS_TBY:     Y = B;                                        break;
+        case INS_TBSS:    SS = B;                                       break;
+        case INS_TBCS:    CS = B;                                       break;
+        case INS_TBDS:    DS = B;                                       break;
 
         // LDX
         case INS_LDX_IM:  X = LoadImmediate();                          break;
@@ -91,8 +91,8 @@ void BetterThanPico::Execute() {
         case INS_STX_DPO: StorePointerOffsetIm( DS, 0, Y, X );          break;
 
         // TX-X
-        case INS_TXA:     A.value = X;                                  break;
-        case INS_TXB:     B.value = X;                                  break;
+        case INS_TXA:     A = X;                                        break;
+        case INS_TXB:     B = X;                                        break;
         case INS_TXY:     Y = X;                                        break;
         case INS_TXSS:    SS = X;                                       break;
         case INS_TXCS:    CS = X;                                       break;
@@ -112,17 +112,17 @@ void BetterThanPico::Execute() {
         case INS_STY_DPO: StorePointerImOffset( DS, X, 0, Y );          break;
 
         // TY-X
-        case INS_TYA:     A.value = Y;                                  break;
-        case INS_TYB:     B.value = Y;                                  break;
+        case INS_TYA:     A = Y;                                        break;
+        case INS_TYB:     B = Y;                                        break;
         case INS_TYX:     X = Y;                                        break;
         case INS_TYSS:    SS = Y;                                       break;
         case INS_TYCS:    CS = Y;                                       break;
         case INS_TYDS:    DS = Y;                                       break;
 
-        case INS_PUSHA:   Push16( A.value );                            break;
-        case INS_POPA:    A.value = Pop16();                            break;
-        case INS_PUSHB:   Push16( B.value );                            break;
-        case INS_POPB:    B.value = Pop16();                            break;
+        case INS_PUSHA:   Push16( A );                                  break;
+        case INS_POPA:    A = Pop16();                                  break;
+        case INS_PUSHB:   Push16( B );                                  break;
+        case INS_POPB:    B = Pop16();                                  break;
         case INS_PUSHX:   Push16( X );                                  break;
         case INS_POPX:    X = Pop16();                                  break;
         case INS_PUSHY:   Push16( Y );                                  break;
@@ -133,14 +133,14 @@ void BetterThanPico::Execute() {
         case INS_RET:     IP = Pop16() + 2; /* Call argument offset */  break;
 
         // Control flow + jumps
-        case INS_CMP:     Compare( A.value, B.value );                  break;
-        case INS_CMP_IM:  Compare( A.value, Fetch16() );                break;
-        case INS_CMP_SO:  Compare( A.value, LoadOffsetIm( SS, BP ) );   break;
+        case INS_CMP:     Compare( A, B );                              break;
+        case INS_CMP_IM:  Compare( A, Fetch16() );                      break;
+        case INS_CMP_SO:  Compare( A, LoadOffsetIm( SS, BP ) );         break;
         case INS_CMP_SPO:
-            Compare( A.value, LoadPointerImOffsetIm( SS, BP, 0 ) );     break;
-        case INS_CMP_DO:  Compare( A.value, LoadOffsetIm( DS, 0 ) );    break;
+            Compare( A, LoadPointerImOffsetIm( SS, BP, 0 ) );           break;
+        case INS_CMP_DO:  Compare( A, LoadOffsetIm( DS, 0 ) );          break;
         case INS_CMP_DPO:
-            Compare( A.value, LoadPointerImOffsetIm( DS, 0, 0 ) );      break;
+            Compare( A, LoadPointerImOffsetIm( DS, 0, 0 ) );            break;
         case INS_JE:      JumpCondition( flags.Z );                     break;
         case INS_JNE:     JumpCondition( !flags.Z );                    break;
         case INS_JG:      JumpCondition( flags.C );                     break;
@@ -151,6 +151,16 @@ void BetterThanPico::Execute() {
         // Interrupts
         case INS_INT:     Interrupt( Fetch() );                         break;
         case INS_RTI:     ReturnFromInterrupt();                        break;
+
+        // Arithmetic
+        case INS_ADD:     BTP_MATH_OP( A, B, + )                        break;
+        case INS_ADD_IM:  BTP_MATH_OP( A, Fetch16(), + )          break;
+        case INS_ADD_SO:  BTP_MATH_OP( A, LoadOffsetIm( SS, BP ), + )   break;
+        case INS_ADD_SPO:
+            BTP_MATH_OP( A, LoadPointerImOffsetIm( SS, BP, 0 ), + )     break;
+        case INS_ADD_DO:  BTP_MATH_OP( A, LoadOffsetIm( DS, 0 ), + )    break;
+        case INS_ADD_DPO:
+            BTP_MATH_OP( A, LoadPointerImOffsetIm( DS, 0, 0 ), + )      break;
     }
 }
 

@@ -60,17 +60,29 @@ pineapple_sprite:
 
     ret
 
+; Flickers the sprite like crazy
+; Takes no arguments
+flicker:
+    pusha
+    pushb
 
+    lda 0x0F       ; A = max color
+.loop:
+    tab
+    int 0x01       ; Update color
+
+    add 0xFFFF     ; A--
+    jne .loop      ; loop if A != 0
+
+    popb
+    popa
+    ret
 
 main:
     lda 0x800
-    tass         ; Stack Segment = 0x800
-
-    call pineapple_sprite
-
-    ; ldb 0x03
-    ; int 0x01     ; Should set the sprite peach
+    tass           ; Stack Segment = 0x800
 
 
 halt:
+    call flicker
     jmp halt

@@ -27,6 +27,18 @@
 
 #define BTP_INTERRUPT_COUNT 16
 
+// Evil little macro to make repeat arithmetic statements easier
+// Args
+//     result = first argument and the result of the operation
+//     value  = second argument
+//     op     = operation (e.g. +, -, etc)
+#define BTP_MATH_OP( result, value, op ) {\
+    uint16_t v = value;\
+    uint32_t r = result op v;\
+    MathFlagSet( result, v, r );\
+    result = r; \
+}
+
 #include <fstream>
 
 #include "stdio.h"
@@ -37,15 +49,6 @@
 // The Better Than Pico 6000 namespace
 namespace btp {
     #include "Instructions.hpp"
-
-
-    // General purpose register
-    union Register {
-        uint16_t value;
-        struct {
-            uint8_t low, high;
-        };
-    };
 
     // Flags
     union Flags {
@@ -66,7 +69,7 @@ namespace btp {
         // General purpose registers
         //     Accumulator
         //     Base register
-        Register A, B;
+        uint16_t A, B;
 
         // Index registers
         //     X-index register
@@ -98,7 +101,7 @@ namespace btp {
 
         void Reset() {
             // Set everything to zero
-            A.value = B.value = X = Y = 
+            A = B = X = Y = 
             IP = SP = BP = SS = CS = DS = 
             flags.value = 0;
         }
@@ -167,6 +170,19 @@ namespace btp {
         void GenericFlagSet( uint16_t value ) {
             flags.Z = ( value == 0 );
             flags.N = ( value >> 15 );
+        }
+
+        // Sets frags for arithmetic
+        void MathFlagSet( uint16_t value0, uint16_t value1, uint32_t result ) {
+            flags.C = ( result > 0xFFFF );
+
+            // Borrowed from this abomination:
+            // https://github.com/bfirsh/jsnes/blob/master/src/cpu.js#L293
+            flags.V =
+                !( ( value0 ^ value1 ) & 0x8000 ) &&
+                ( ( value0 ^ result ) & 0x8000 );
+
+            GenericFlagSet( result );
         }
 
         // Sets flags appropriately for a CMP instruction

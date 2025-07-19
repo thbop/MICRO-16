@@ -149,7 +149,12 @@ enum Instructions {
     INS_RTI     = 0x01, // Return from interrupt (pop IP, CS, and flags)
 
     // Arithmetic
-    
+    INS_ADD     = 0xD0, // Add A to B
+    INS_ADD_IM  = 0xD1, // Add A to im
+    INS_ADD_SO  = 0xD2, // Add A to [SS:BP+im]
+    INS_ADD_SPO = 0xD3, // Add A to [[SS:BP+im]+im]
+    INS_ADD_DO  = 0xD4, // Add A to [DS:im]
+    INS_ADD_DPO = 0xD5, // Add A to [[DS:im]+im]
 };
 
 #endif

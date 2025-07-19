@@ -157,6 +157,9 @@ const std::unordered_map<std::string, Info> instructions = {
     { "int",   { INS_INT, IM8 } },
     { "rti",   { INS_RTI, NONE } },
 
+    // Arithmetic
+    { "add",   { INS_ADD, NONE | IM16 | SOI | SPIOI | DOI | DPIOI } },
+
 };
 
 // Returns the addressing mode of an instruction given its token
@@ -209,23 +212,24 @@ uint16_t GetAddressingMode( token::Instruction *token ) {
 }
 
 // Most instructions' addressing modes follow this offset pattern
-int GetAddressingModeOffset( uint16_t mode ) {
+// TODO: Make this less bad
+int GetAddressingModeOffset( uint16_t mode, Info *info ) {
     switch ( mode ) {
-        case NONE:
+        case NONE:  return 0;
         case IM8:
-        case IM16:    return 0;
+        case IM16:  return ( info->addressingModes & NONE ) ? 1 : 0;
         case SO:
-        case SOI:   return 1;
+        case SOI:   return ( info->addressingModes & NONE ) ? 2 : 1;
         case SPO:
         case SPOI:
         case SPIO:
-        case SPIOI: return 2;
+        case SPIOI: return ( info->addressingModes & NONE ) ? 3 : 2;
         case DO:
-        case DOI:   return 3;
+        case DOI:   return ( info->addressingModes & NONE ) ? 4 : 3;
         case DPO:
         case DPOI:
         case DPIO:
-        case DPIOI: return 4;
+        case DPIOI: return ( info->addressingModes & NONE ) ? 5 : 4;
     }
     return 0;
 }
@@ -509,7 +513,8 @@ void Parser::ParseCode( token::Instruction *token ) {
         // Get opcode
         if ( token->value != "db" ) {
             uint8_t opcode =
-                info.baseOpcode + ins::GetAddressingModeOffset( addressingMode );
+                info.baseOpcode +
+                ins::GetAddressingModeOffset( addressingMode, &info );
             
             output.code->Append( opcode );
         }
