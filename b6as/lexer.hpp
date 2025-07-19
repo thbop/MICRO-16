@@ -68,7 +68,8 @@ std::vector<std::string> instructions = {
     "tssa", "tcsa", "tdsa",
     "cmp", "je", "jne", "jg", "jge", "jmp", "ljmp",
     "int", "rti",
-    "add",
+    "add", "sub", "ina", "dea", "inb", "deb",
+    "shr", "shl", "inx", "dex", "iny", "dey",
 };
 
 // Registers

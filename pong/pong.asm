@@ -71,8 +71,8 @@ flicker:
     tab
     int 0x01       ; Update color
 
-    add 0xFFFF     ; A--
-    jne .loop      ; loop if A != 0
+    dea            ; Decrement A
+    jne .loop      ; Loop if A != 0
 
     popb
     popa
@@ -81,6 +81,7 @@ flicker:
 main:
     lda 0x800
     tass           ; Stack Segment = 0x800
+
 
 
 halt:

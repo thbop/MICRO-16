@@ -64,63 +64,74 @@ Check out the [assembly guide](ASSEMBLY_GUIDE.md) for more information about seg
 
 For opcodes, check the [Instructions.hpp](../src/btp6000/Instructions.hpp) file.
 
-| Name  | Addressing Modes                       | Description                            |
-|-------|----------------------------------------|----------------------------------------|
-| LDA   | IM16, SOI, SPIOI, DOI, DPIOI           | Loads a value into the accumulator     |
-| STA   | SOI, SPIOI, DOI, DPIOI                 | Stores the accumulator in memory       |
-| TAB   | NONE                                   | Transfer A to B                        |
-| TAX   | NONE                                   | Transfer A to X                        |
-| TAY   | NONE                                   | Transfer A to Y                        |
-| TASS  | NONE                                   | Transfer A to SS                       |
-| TACS  | NONE                                   | Transfer A to CS                       |
-| TADS  | NONE                                   | Transfer A to DS                       |
-| LDB   | IM16, SO, SPO, DO, DPO                 | Loads a value into the base            |
-| STB   | SO, SPO, DO, DPO                       | Stores the base in memory              |
-| TBA   | NONE                                   | Transfer B to A                        |
-| TBX   | NONE                                   | Transfer B to X                        |
-| TBY   | NONE                                   | Transfer B to Y                        |
-| TBSS  | NONE                                   | Transfer B to SS                       |
-| TBCS  | NONE                                   | Transfer B to CS                       |
-| TBDS  | NONE                                   | Transfer B to DS                       |
-| LDX   | IM16, SOI, SPOI, DOI, DPOI             | Loads a value into the X-index         |
-| STX   | SOI, SPOI, DOI, DPOI                   | Stores the base in memory              |
-| TXA   | NONE                                   | Transfer X to A                        |
-| TXB   | NONE                                   | Transfer X to B                        |
-| TXY   | NONE                                   | Transfer X to Y                        |
-| TXSS  | NONE                                   | Transfer X to SS                       |
-| TXCS  | NONE                                   | Transfer X to CS                       |
-| TXDS  | NONE                                   | Transfer X to DS                       |
-| LDY   | IM16, SO, SPIO, DO, DPIO               | Loads a value into the Y-pointer       |
-| STY   | SO, SPIO, DO, DPIO                     | Stores the Y-pointer in memory         |
-| TYA   | NONE                                   | Transfer Y to A                        |
-| TYB   | NONE                                   | Transfer Y to B                        |
-| TYX   | NONE                                   | Transfer Y to X                        |
-| TYSS  | NONE                                   | Transfer Y to SS                       |
-| TYCS  | NONE                                   | Transfer Y to CS                       |
-| TYDS  | NONE                                   | Transfer Y to DS                       |
-| TSSA  | NONE                                   | Transfer SS to A                       |
-| TCSA  | NONE                                   | Transfer CS to A                       |
-| TDSA  | NONE                                   | Transfer DS to A                       |
-| PUSHA | NONE                                   | Pushes A to the stack                  |
-| POPA  | NONE                                   | Pops A from the stack                  |
-| PUSHB | NONE                                   | Pushes B to the stack                  |
-| POPB  | NONE                                   | Pops B from the stack                  |
-| PUSHX | NONE                                   | Pushes X to the stack                  |
-| POPX  | NONE                                   | Pops X from the stack                  |
-| PUSHY | NONE                                   | Pushes Y to the stack                  |
-| POPY  | NONE                                   | Pops Y from the stack                  |
-| ENTER | NONE                                   | Enter stack frame (push BP, BP = SP)   |
-| LEAVE | NONE                                   | Exit stack frame (SP = BP, pop BP)     |
-| CALL  | IM16                                   | Calls a function (push IP, jump)       |
-| RET   | NONE                                   | Returns from a function (pop IP)       |
-| CMP   | NONE (B), IM16, SOI, SPIOI, DOI, DPIOI | Compares a value with A                |
-| JE    | IM16                                   | Jump if equal (ZF == 1)                |
-| JNE   | IM16                                   | Jump if not equal (ZF == 0)            |
-| JG    | IM16                                   | Jump if greater (CF == 1)              |
-| JGE   | IM16                                   | Jump if greater or equal (NF == 1)     |
-| JMP   | IM8                                    | Unconditional short jump               |
-| LJMP  | IM16                                   | Uncondition long jump                  |
-| ADD   | NONE (B), IM16, SOI, SPIOI, DOI, DPIOI | Adds A to a value storing the sum in A |
+| Name  | Addressing Modes                       | Description                          |
+|-------|----------------------------------------|--------------------------------------|
+| LDA   | IM16, SOI, SPIOI, DOI, DPIOI           | Loads a value into the accumulator   |
+| STA   | SOI, SPIOI, DOI, DPIOI                 | Stores the accumulator in memory     |
+| TAB   | NONE                                   | Transfer A to B                      |
+| TAX   | NONE                                   | Transfer A to X                      |
+| TAY   | NONE                                   | Transfer A to Y                      |
+| TASS  | NONE                                   | Transfer A to SS                     |
+| TACS  | NONE                                   | Transfer A to CS                     |
+| TADS  | NONE                                   | Transfer A to DS                     |
+| LDB   | IM16, SO, SPO, DO, DPO                 | Loads a value into the base          |
+| STB   | SO, SPO, DO, DPO                       | Stores the base in memory            |
+| TBA   | NONE                                   | Transfer B to A                      |
+| TBX   | NONE                                   | Transfer B to X                      |
+| TBY   | NONE                                   | Transfer B to Y                      |
+| TBSS  | NONE                                   | Transfer B to SS                     |
+| TBCS  | NONE                                   | Transfer B to CS                     |
+| TBDS  | NONE                                   | Transfer B to DS                     |
+| LDX   | IM16, SOI, SPOI, DOI, DPOI             | Loads a value into the X-index       |
+| STX   | SOI, SPOI, DOI, DPOI                   | Stores the base in memory            |
+| TXA   | NONE                                   | Transfer X to A                      |
+| TXB   | NONE                                   | Transfer X to B                      |
+| TXY   | NONE                                   | Transfer X to Y                      |
+| TXSS  | NONE                                   | Transfer X to SS                     |
+| TXCS  | NONE                                   | Transfer X to CS                     |
+| TXDS  | NONE                                   | Transfer X to DS                     |
+| LDY   | IM16, SO, SPIO, DO, DPIO               | Loads a value into the Y-pointer     |
+| STY   | SO, SPIO, DO, DPIO                     | Stores the Y-pointer in memory       |
+| TYA   | NONE                                   | Transfer Y to A                      |
+| TYB   | NONE                                   | Transfer Y to B                      |
+| TYX   | NONE                                   | Transfer Y to X                      |
+| TYSS  | NONE                                   | Transfer Y to SS                     |
+| TYCS  | NONE                                   | Transfer Y to CS                     |
+| TYDS  | NONE                                   | Transfer Y to DS                     |
+| TSSA  | NONE                                   | Transfer SS to A                     |
+| TCSA  | NONE                                   | Transfer CS to A                     |
+| TDSA  | NONE                                   | Transfer DS to A                     |
+| PUSHA | NONE                                   | Pushes A to the stack                |
+| POPA  | NONE                                   | Pops A from the stack                |
+| PUSHB | NONE                                   | Pushes B to the stack                |
+| POPB  | NONE                                   | Pops B from the stack                |
+| PUSHX | NONE                                   | Pushes X to the stack                |
+| POPX  | NONE                                   | Pops X from the stack                |
+| PUSHY | NONE                                   | Pushes Y to the stack                |
+| POPY  | NONE                                   | Pops Y from the stack                |
+| ENTER | NONE                                   | Enter stack frame (push BP, BP = SP) |
+| LEAVE | NONE                                   | Exit stack frame (SP = BP, pop BP)   |
+| CALL  | IM16                                   | Calls a function (push IP, jump)     |
+| RET   | NONE                                   | Returns from a function (pop IP)     |
+| CMP   | NONE (B), IM16, SOI, SPIOI, DOI, DPIOI | Compares a value with A              |
+| JE    | IM16                                   | Jump if equal (ZF == 1)              |
+| JNE   | IM16                                   | Jump if not equal (ZF == 0)          |
+| JG    | IM16                                   | Jump if greater (CF == 1)            |
+| JGE   | IM16                                   | Jump if greater or equal (NF == 1)   |
+| JMP   | IM8                                    | Unconditional short jump             |
+| LJMP  | IM16                                   | Uncondition long jump                |
+| ADD   | NONE (B), IM16, SOI, SPIOI, DOI, DPIOI | A = A + value                        |
+| SUB   | NONE (B), IM16, SOI, SPIOI, DOI, DPIOI | A = A - value                        |
+| SHR   | NONE (B), IM16, SOI, SPIOI, DOI, DPIOI | A = A >> value                       |
+| SHL   | NONE (B), IM16, SOI, SPIOI, DOI, DPIOI | A = A << value                       |
+| INA   | NONE                                   | Increment A                          |
+| DEA   | NONE                                   | Decrement A                          |
+| INB   | NONE                                   | Increment B                          |
+| DEB   | NONE                                   | Decrement B                          |
+| INX   | NONE                                   | Increment X                          |
+| DEX   | NONE                                   | Decrement X                          |
+| INY   | NONE                                   | Increment Y                          |
+| DEY   | NONE                                   | Decrement Y                          |
 
 ## Linker Directives
 

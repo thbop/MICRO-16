@@ -155,6 +155,37 @@ enum Instructions {
     INS_ADD_SPO = 0xD3, // Add A to [[SS:BP+im]+im]
     INS_ADD_DO  = 0xD4, // Add A to [DS:im]
     INS_ADD_DPO = 0xD5, // Add A to [[DS:im]+im]
+
+    INS_SUB     = 0xD6, // Subtract A by B
+    INS_SUB_IM  = 0xD7, // Subtract A by im
+    INS_SUB_SO  = 0xD8, // Subtract A by [SS:BP+im]
+    INS_SUB_SPO = 0xD9, // Subtract A by [[SS:BP+im]+im]
+    INS_SUB_DO  = 0xDA, // Subtract A by [DS:im]
+    INS_SUB_DPO = 0xDB, // Subtract A by [[DS:im]+im]
+
+    INS_INA     = 0xDC, // Increment A
+    INS_DEA     = 0xDD, // Decrement A
+    INS_INB     = 0xDE, // Increment B
+    INS_DEB     = 0xDF, // Decrement B
+
+    INS_SHR     = 0x20, // Shift A right by B
+    INS_SHR_IM  = 0x21, // Shift A right by im
+    INS_SHR_SO  = 0x22, // Shift A right by [SS:BP+im]
+    INS_SHR_SPO = 0x23, // Shift A right by [[SS:BP+im]+im]
+    INS_SHR_DO  = 0x24, // Shift A right by [DS:im]
+    INS_SHR_DPO = 0x25, // Shift A right by [[DS:im]+im]
+
+    INS_SHL     = 0x26, // Shift A left by B
+    INS_SHL_IM  = 0x27, // Shift A left by im
+    INS_SHL_SO  = 0x28, // Shift A left by [SS:BP+im]
+    INS_SHL_SPO = 0x29, // Shift A left by [[SS:BP+im]+im]im]
+    INS_SHL_DO  = 0x2A, // Shift A left by [DS:im]
+    INS_SHL_DPO = 0x2B, // Shift A left by [[DS:im]+im]
+
+    INS_INX     = 0x2C, // Increment X
+    INS_DEX     = 0x2D, // Decrement X
+    INS_INY     = 0x2E, // Increment Y
+    INS_DEY     = 0x2F, // Decrement Y
 };
 
 #endif

@@ -159,6 +159,17 @@ const std::unordered_map<std::string, Info> instructions = {
 
     // Arithmetic
     { "add",   { INS_ADD, NONE | IM16 | SOI | SPIOI | DOI | DPIOI } },
+    { "sub",   { INS_SUB, NONE | IM16 | SOI | SPIOI | DOI | DPIOI } },
+    { "ina",   { INS_INA, NONE } },
+    { "dea",   { INS_DEA, NONE } },
+    { "inb",   { INS_INB, NONE } },
+    { "deb",   { INS_DEB, NONE } },
+    { "shr",   { INS_SHR, NONE | IM16 | SOI | SPIOI | DOI | DPIOI } },
+    { "shl",   { INS_SHL, NONE | IM16 | SOI | SPIOI | DOI | DPIOI } },
+    { "inx",   { INS_INX, NONE } },
+    { "dex",   { INS_DEX, NONE } },
+    { "iny",   { INS_INY, NONE } },
+    { "dey",   { INS_DEY, NONE } },
 
 };
 
