@@ -21,18 +21,23 @@
 */
 
 #include <iostream>
+#include <fstream>
 
 #include "stdio.h"
 
 #define TITLE             "Micro-16"
 #define SCREEN_RESOLUTION 128
-#define WINDOW_RATIO      4
+#define WINDOW_RATIO      6
 #define WINDOW_RESOLUTION ( SCREEN_RESOLUTION * WINDOW_RATIO )
+
+// Ignore development package
+// #define RUNTIME
 
 #include "MiDi16/MicroDisplay16.hpp"
 #include "bob3000/Bob.hpp"
 #include "btp6000/Btp.hpp"
 #include "pgu7000/Pgu.hpp"
+#include "cartlink/CartLink.hpp"
 
 // Main class
 class Micro16 {
@@ -51,12 +56,25 @@ public:
         // GPU
         gpu = new pgu::PixelGraphicsUnit( screen );
         gpu->SetMemory( &memory );
+
+        #ifndef RUNTIME
+        editor = new Editor( window, screen );
+        #endif
     }
 
     // Destroy resources
     ~Micro16() {
         delete screen;
         delete window;
+        delete gpu;
+
+        #ifndef RUNTIME
+        delete editor;
+        #endif
+
+        #ifdef BTP_DEBUG
+        cpu.DumpMemory( "build/memory.bin" );
+        #endif
     }
 
     // Update loop
@@ -68,6 +86,9 @@ public:
     // Main loop
     void Run();
 
+    // Loads a cartridge into memory
+    void LoadCart( const std::string &cartName );
+
 private:
     Bob3k memory;
     btp::BetterThanPico cpu;
@@ -75,12 +96,48 @@ private:
 
     MiDi16::Window *window;
     MiDi16::Surface *screen;
+
+    #ifndef RUNTIME
+    Editor *editor;
+
+    enum State {
+        GAME,
+        EDITOR,
+    };
+    int state = EDITOR;
+    #endif
 };
+
+// Loads a cartridge into memory
+void Micro16::LoadCart( const std::string &cartName ) {
+    std::ifstream file( cartName, std::ios::binary );
+    if ( !file.is_open() ) {
+        std::cout << "Could not open cartridge \"" << cartName << "\"!\n";
+        return;
+    }
+
+    // Calculate file size (to make sure it is a valid cartridge)
+    std::streamsize fileSize = file.tellg();
+    file.seekg( 0, std::ios::end );
+    fileSize = file.tellg() - fileSize;
+    if ( fileSize != BOB3K_SIZE ) {
+        std::cout << "Invalid cartridge size! Must be exactly 64K!\n";
+        file.close();
+        return;
+    }
+
+    // Seek back and read
+    file.seekg( 0, std::ios::beg );
+    file.read( (char*)memory.data(), BOB3K_SIZE );
+
+    file.close();
+}
 
 
 // Update loop
 void Micro16::Update() {
-
+    // if ( window->IsKeyPressed( MiDi16::KEY_F11 ) )
+    cpu.Execute();
 }
 
 // Draw loop
@@ -90,12 +147,40 @@ void Micro16::Draw() {
 
 // Main loop
 void Micro16::Run() {
+    // Hardcoded load cartridge
+    LoadCart( "build/pong/pong.cart" );
+
     while ( window->IsRunning() ) {
         window->PollEvents();
+        #ifdef RUNTIME
         Update();
+        #else
+        // Basic state management
+        if ( window->IsKeyPressed( MiDi16::KEY_F5 ) ) {
+            cpu.Reset();
+            cpu.CS = 0x800; // Hardcode the code segment
+            state = GAME;
+        }
+        else if ( window->IsKeyPressed( MiDi16::KEY_ESC ) ) {
+            state = EDITOR;
+        }
+
+
+        switch ( state ) {
+            case GAME:   Update();         break;
+            case EDITOR: editor->Update(); break;
+        }
+        #endif
 
         screen->Clear();
+        #ifdef RUNTIME
         Draw();
+        #else
+        switch ( state ) {
+            case GAME:   Draw();         break;
+            case EDITOR: editor->Draw(); break;
+        }
+        #endif
 
         screen->BlitFill( window );
         window->Flip();

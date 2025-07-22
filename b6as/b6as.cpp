@@ -20,7 +20,7 @@
 * SOFTWARE.
 */
 
-#define DEBUG
+// #define DEBUG
 
 #include <iostream>
 #include <string>
@@ -32,10 +32,10 @@
 #include "lexer.hpp"
 #include "parser.hpp"
 
-int main( int argc, char **args ) {
+int main( int argc, char **argv ) {
     // Create the settings object and parse arguments
     Settings settings;
-    settings.Parse( argc, args );
+    settings.Parse( argc, argv );
 
     // Lex the file
     lex::Lexer lexer( &settings );
@@ -43,7 +43,9 @@ int main( int argc, char **args ) {
 
     // Parse the lex structure
     parser::Parser parser( &lexer, &settings );
+    #ifdef DEBUG
     parser.PrintStructure();
+    #endif
     parser.Parse();
 
 

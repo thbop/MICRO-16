@@ -22,50 +22,226 @@
 
 #include "Btp.hpp"
 
+namespace btp {
+
 // Executes one instruction
-void btp::BetterThanPico::Execute() {
+void BetterThanPico::Execute() {
     uint8_t instruction = Fetch();
+    #ifdef BTP_DEBUG
+    printf(
+        "INS: %02X CS:IP: %02X:%02X A: %02X B: %02X X: %02X Y: %02X\n",
+        instruction, CS, IP, A, B, X, Y
+    );
+    #endif
+
     switch ( instruction ) {
         // LDA
-        case INS_LDA_IM:  A.value = LoadImmediate();                    break;
-        case INS_LDA_SO:  A.value = LoadOffset( SS, BP + X );           break;
-        case INS_LDA_SPO: A.value = LoadPointerOffset( SS, BP + X, Y ); break;
-        case INS_LDA_DO:  A.value = LoadOffset( DS, X );                break;
-        case INS_LDA_DPO: A.value = LoadPointerOffset( DS, X, Y );      break;
+        case INS_LDA_IM:  A = LoadImmediate();                          break;
+        case INS_LDA_SO:  A = LoadOffsetIm( SS, BP );                   break;
+        case INS_LDA_SPO: A = LoadPointerImOffsetIm( SS, BP, 0 );       break;
+        case INS_LDA_DO:  A = LoadOffsetIm( DS, 0 );                    break;
+        case INS_LDA_DPO: A = LoadPointerImOffsetIm( DS, 0, 0 );        break;
 
         // STA
-        case INS_STA_SO:  StoreOffset( SS, BP + X, A.value );           break;
-        case INS_STA_SPO: StorePointerOffset( SS, BP + X, Y, A.value ); break;
-        case INS_STA_DO:  StoreOffset( DS, X, A.value );                break;
-        case INS_STA_DPO: StorePointerOffset( DS, X, Y, A.value );      break;
+        case INS_STA_SO:  StoreOffsetIm( SS, BP, A );                   break;
+        case INS_STA_SPO: StorePointerImOffsetIm( SS, BP, 0, A );       break;
+        case INS_STA_DO:  StoreOffsetIm( DS, 0, A );                    break;
+        case INS_STA_DPO: StorePointerImOffsetIm( DS, 0, 0, A );        break;
 
         // TA-X
-        case INS_TAB:     B.value = A.value;                            break;
-        case INS_TAX:     X = A.value;                                  break;
-        case INS_TAY:     Y = A.value;                                  break;
-        case INS_TASS:    SS = A.value;                                 break;
-        case INS_TACS:    CS = A.value;                                 break;
-        case INS_TADS:    DS = A.value;                                 break;
+        case INS_TAB:     B = A;                                        break;
+        case INS_TAX:     X = A;                                        break;
+        case INS_TAY:     Y = A;                                        break;
+        case INS_TASS:    SS = A;                                       break;
+        case INS_TACS:    CS = A;                                       break;
+        case INS_TADS:    DS = A;                                       break;
 
         // LDB
-        case INS_LDB_IM:  B.value = LoadImmediate();                    break;
-        case INS_LDB_SO:  B.value = LoadOffsetIm( SS, BP );             break;
-        case INS_LDB_SPO: B.value = LoadPointerImOffsetIm( SS, BP, 0 ); break;
-        case INS_LDB_DO:  B.value = LoadOffsetIm( DS, 0 );              break;
-        case INS_LDB_DPO: B.value = LoadPointerImOffsetIm( DS, 0, 0 );  break;
+        case INS_LDB_IM:  B = LoadImmediate();                          break;
+        case INS_LDB_SO:  B = LoadOffset( SS, BP + X );                 break;
+        case INS_LDB_SPO: B = LoadPointerOffset( SS, BP + X, Y );       break;
+        case INS_LDB_DO:  B = LoadOffset( DS, X );                      break;
+        case INS_LDB_DPO: B = LoadPointerOffset( DS, X, Y );            break;
 
         // STB
-        case INS_STB_SO:  StoreOffsetIm( SS, BP, B.value );             break;
-        case INS_STB_SPO: StorePointerImOffsetIm( SS, BP, 0, B.value ); break;
-        case INS_STB_DO:  StoreOffsetIm( DS, 0, B.value );              break;
-        case INS_STB_DPO: StorePointerImOffsetIm( DS, 0, 0, B.value );  break;
+        case INS_STB_SO:  StoreOffset( SS, BP + X, B );                 break;
+        case INS_STB_SPO: StorePointerOffset( SS, BP + X, Y, B );       break;
+        case INS_STB_DO:  StoreOffset( DS, X, B );                      break;
+        case INS_STB_DPO: StorePointerOffset( DS, X, Y, B );            break;
 
         // TB-X
-        case INS_TBA:     A.value = B.value;                            break;
-        case INS_TBX:     X = B.value;                                  break;
-        case INS_TBY:     Y = B.value;                                  break;
-        case INS_TBSS:    SS = B.value;                                 break;
-        case INS_TBCS:    CS = B.value;                                 break;
-        case INS_TBDS:    DS = B.value;                                 break;
+        case INS_TBA:     A = B;                                        break;
+        case INS_TBX:     X = B;                                        break;
+        case INS_TBY:     Y = B;                                        break;
+        case INS_TBSS:    SS = B;                                       break;
+        case INS_TBCS:    CS = B;                                       break;
+        case INS_TBDS:    DS = B;                                       break;
+
+        // LDX
+        case INS_LDX_IM:  X = LoadImmediate();                          break;
+        case INS_LDX_SO:  X = LoadOffsetIm( SS, BP );                   break;
+        case INS_LDX_SPO: X = LoadPointerOffsetIm( SS, BP, Y );         break;
+        case INS_LDX_DO:  X = LoadOffsetIm( DS, 0 );                    break;
+        case INS_LDX_DPO: X = LoadPointerOffsetIm( DS, 0, Y );          break;
+
+        // STX
+        case INS_STX_SO:  StoreOffsetIm( SS, BP, X );                   break;
+        case INS_STX_SPO: StorePointerOffsetIm( SS, BP, Y, X );         break;
+        case INS_STX_DO:  StoreOffsetIm( DS, 0, X );                    break;
+        case INS_STX_DPO: StorePointerOffsetIm( DS, 0, Y, X );          break;
+
+        // TX-X
+        case INS_TXA:     A = X;                                        break;
+        case INS_TXB:     B = X;                                        break;
+        case INS_TXY:     Y = X;                                        break;
+        case INS_TXSS:    SS = X;                                       break;
+        case INS_TXCS:    CS = X;                                       break;
+        case INS_TXDS:    DS = X;                                       break;
+
+        // LDY
+        case INS_LDY_IM:  Y = LoadImmediate();                          break;
+        case INS_LDY_SO:  Y = LoadOffset( SS, BP + X );                 break;
+        case INS_LDY_SPO: Y = LoadPointerImOffset( SS, BP + X, 0 );     break;
+        case INS_LDY_DO:  Y = LoadOffset( DS, X );                      break;
+        case INS_LDY_DPO: Y = LoadPointerImOffset( DS, X, 0 );          break;
+
+        // STY
+        case INS_STY_SO:  StoreOffset( SS, BP + X, Y );                 break;
+        case INS_STY_SPO: StorePointerImOffset( SS, BP + X, 0, Y );     break;
+        case INS_STY_DO:  StoreOffset( DS, X, Y );                      break;
+        case INS_STY_DPO: StorePointerImOffset( DS, X, 0, Y );          break;
+
+        // TY-X
+        case INS_TYA:     A = Y;                                        break;
+        case INS_TYB:     B = Y;                                        break;
+        case INS_TYX:     X = Y;                                        break;
+        case INS_TYSS:    SS = Y;                                       break;
+        case INS_TYCS:    CS = Y;                                       break;
+        case INS_TYDS:    DS = Y;                                       break;
+
+        case INS_PUSHA:   Push16( A );                                  break;
+        case INS_POPA:    A = Pop16();                                  break;
+        case INS_PUSHB:   Push16( B );                                  break;
+        case INS_POPB:    B = Pop16();                                  break;
+        case INS_PUSHX:   Push16( X );                                  break;
+        case INS_POPX:    X = Pop16();                                  break;
+        case INS_PUSHY:   Push16( Y );                                  break;
+        case INS_POPY:    Y = Pop16();                                  break;
+        case INS_ENTER:   Push16( BP ); BP = SP;                        break;
+        case INS_LEAVE:   SP = BP; BP = Pop16();                        break;
+        case INS_CALL:    Push16( IP ); IP = Fetch16();                 break;
+        case INS_RET:     IP = Pop16() + 2; /* Call argument offset */  break;
+
+        // Control flow + jumps
+        case INS_CMP:     Compare( A, B );                              break;
+        case INS_CMP_IM:  Compare( A, Fetch16() );                      break;
+        case INS_CMP_SO:  Compare( A, LoadOffsetIm( SS, BP ) );         break;
+        case INS_CMP_SPO:
+            Compare( A, LoadPointerImOffsetIm( SS, BP, 0 ) );           break;
+        case INS_CMP_DO:  Compare( A, LoadOffsetIm( DS, 0 ) );          break;
+        case INS_CMP_DPO:
+            Compare( A, LoadPointerImOffsetIm( DS, 0, 0 ) );            break;
+        case INS_JE:      JumpCondition( flags.Z );                     break;
+        case INS_JNE:     JumpCondition( !flags.Z );                    break;
+        case INS_JG:      JumpCondition( flags.C );                     break;
+        case INS_JGE:     JumpCondition( flags.N );                     break;
+        case INS_JMP:     Jump();                                       break;
+        case INS_LJMP:    LongJump();                                   break;
+
+        // Interrupts
+        case INS_INT:     Interrupt( Fetch() );                         break;
+        case INS_RTI:     ReturnFromInterrupt();                        break;
+
+        // Arithmetic
+        case INS_ADD:     BTP_MATH_OP( A, B, + )                        break;
+        case INS_ADD_IM:  BTP_MATH_OP( A, Fetch16(), + )                break;
+        case INS_ADD_SO:  BTP_MATH_OP( A, LoadOffsetIm( SS, BP ), + )   break;
+        case INS_ADD_SPO:
+            BTP_MATH_OP( A, LoadPointerImOffsetIm( SS, BP, 0 ), + )     break;
+        case INS_ADD_DO:  BTP_MATH_OP( A, LoadOffsetIm( DS, 0 ), + )    break;
+        case INS_ADD_DPO:
+            BTP_MATH_OP( A, LoadPointerImOffsetIm( DS, 0, 0 ), + )      break;
+
+        case INS_SUB:     BTP_MATH_OP( A, B, - )                        break;
+        case INS_SUB_IM:  BTP_MATH_OP( A, Fetch16(), - )                break;
+        case INS_SUB_SO:  BTP_MATH_OP( A, LoadOffsetIm( SS, BP ), - )   break;
+        case INS_SUB_SPO:
+            BTP_MATH_OP( A, LoadPointerImOffsetIm( SS, BP, 0 ), - )     break;
+        case INS_SUB_DO:  BTP_MATH_OP( A, LoadOffsetIm( DS, 0 ), - )    break;
+        case INS_SUB_DPO:
+            BTP_MATH_OP( A, LoadPointerImOffsetIm( DS, 0, 0 ), - )      break;
+
+        case INS_SHR:     BTP_MATH_OP( A, B, >> )                       break;
+        case INS_SHR_IM:  BTP_MATH_OP( A, Fetch16(), >> )               break;
+        case INS_SHR_SO:  BTP_MATH_OP( A, LoadOffsetIm( SS, BP ), >> )  break;
+        case INS_SHR_SPO:
+            BTP_MATH_OP( A, LoadPointerImOffsetIm( SS, BP, 0 ), >> )    break;
+        case INS_SHR_DO:  BTP_MATH_OP( A, LoadOffsetIm( DS, 0 ), >> )   break;
+        case INS_SHR_DPO:
+            BTP_MATH_OP( A, LoadPointerImOffsetIm( DS, 0, 0 ), >> )     break;
+
+        case INS_SHL:     BTP_MATH_OP( A, B, << )                       break;
+        case INS_SHL_IM:  BTP_MATH_OP( A, Fetch16(), << )               break;
+        case INS_SHL_SO:  BTP_MATH_OP( A, LoadOffsetIm( SS, BP ), << )  break;
+        case INS_SHL_SPO:
+            BTP_MATH_OP( A, LoadPointerImOffsetIm( SS, BP, 0 ), << )    break;
+        case INS_SHL_DO:  BTP_MATH_OP( A, LoadOffsetIm( DS, 0 ), << )   break;
+        case INS_SHL_DPO:
+            BTP_MATH_OP( A, LoadPointerImOffsetIm( DS, 0, 0 ), << )     break;
+        
+        case INS_INA:     BTP_MATH_OP( A, 1, + )                        break;
+        case INS_DEA:     BTP_MATH_OP( A, 1, - )                        break;
+        case INS_INB:     BTP_MATH_OP( B, 1, + )                        break;
+        case INS_DEB:     BTP_MATH_OP( B, 1, - )                        break;
+        case INS_INX:     BTP_MATH_OP( X, 1, + )                        break;
+        case INS_DEX:     BTP_MATH_OP( X, 1, - )                        break;
+        case INS_INY:     BTP_MATH_OP( Y, 1, + )                        break;
+        case INS_DEY:     BTP_MATH_OP( Y, 1, - )                        break;
+
+        // Bit tests
+        case INS_AND:     BTP_MATH_OP( A, B, & )                        break;
+        case INS_AND_IM:  BTP_MATH_OP( A, Fetch16(), & )                break;
+        case INS_AND_SO:  BTP_MATH_OP( A, LoadOffsetIm( SS, BP ), & )   break;
+        case INS_AND_SPO:
+            BTP_MATH_OP( A, LoadPointerImOffsetIm( SS, BP, 0 ), & )     break;
+        case INS_AND_DO:  BTP_MATH_OP( A, LoadOffsetIm( DS, 0 ), & )    break;
+        case INS_AND_DPO:
+            BTP_MATH_OP( A, LoadPointerImOffsetIm( DS, 0, 0 ), & )      break;
+
+        case INS_OR:      BTP_MATH_OP( A, B, | )                        break;
+        case INS_OR_IM:   BTP_MATH_OP( A, Fetch16(), | )                break;
+        case INS_OR_SO:   BTP_MATH_OP( A, LoadOffsetIm( SS, BP ), | )   break;
+        case INS_OR_SPO:
+            BTP_MATH_OP( A, LoadPointerImOffsetIm( SS, BP, 0 ), | )     break;
+        case INS_OR_DO:   BTP_MATH_OP( A, LoadOffsetIm( DS, 0 ), | )    break;
+        case INS_OR_DPO:
+            BTP_MATH_OP( A, LoadPointerImOffsetIm( DS, 0, 0 ), | )      break;
+
+        case INS_XOR:     BTP_MATH_OP( A, B, ^ )                        break;
+        case INS_XOR_IM:  BTP_MATH_OP( A, Fetch16(), ^ )                break;
+        case INS_XOR_SO:  BTP_MATH_OP( A, LoadOffsetIm( SS, BP ), ^ )   break;
+        case INS_XOR_SPO:
+            BTP_MATH_OP( A, LoadPointerImOffsetIm( SS, BP, 0 ), ^ )     break;
+        case INS_XOR_DO:  BTP_MATH_OP( A, LoadOffsetIm( DS, 0 ), ^ )    break;
+        case INS_XOR_DPO:
+            BTP_MATH_OP( A, LoadPointerImOffsetIm( DS, 0, 0 ), ^ )      break;
+
+        // Flag stuff
+        case INS_SEC:     flags.C = 1;                                  break;
+        case INS_CLC:     flags.C = 0;                                  break;
+        case INS_CLV:     flags.V = 0;                                  break;
     }
+}
+
+#ifdef BTP_DEBUG
+// Dumps all the memory to a file
+void BetterThanPico::DumpMemory( const char *outputFile ) {
+    std::ofstream file( outputFile );
+
+    file.write( (char*)memory->data(), BOB3K_SIZE );
+
+    file.close();
+}
+#endif
+
 }

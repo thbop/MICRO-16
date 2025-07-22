@@ -20,52 +20,45 @@
 * SOFTWARE.
 */
 
-#ifndef BOB_HPP
-#define BOB_HPP
+#ifndef RUNTIME
+#ifndef CARTLINK_HPP
+#define CARTLINK_HPP
 
+// Essentially the editor + linker
 
-#include "stdint.h"
+#include "../MiDi16/MicroDisplay16.hpp"
+#include "Gui.hpp"
 
-#define BOB3K_SIZE 0x10000
-
-// Buffer of Bytes 3000
-// A class to manage memory
-class Bob3k {
+// Cartlink editor
+class Editor {
 public:
     // Empty constructor
-    Bob3k() {}
+    Editor() {}
+    // Constructor
+    Editor( MiDi16::Window *window, MiDi16::Surface *screen )
+        : window( window ), screen( screen ) {
+        textbox = new gui::TextBox( window, screen, { 1, 8, 126, 120 } );
 
-    // Getter
-    uint8_t Read( uint16_t address ) const {
-        return buffer[address];
     }
 
-    // Returns a word
-    uint16_t Read16( uint16_t address ) const {
-        return *(uint16_t*)( buffer + address );
+    // Clean up resources
+    ~Editor() {
+        delete textbox;
     }
 
-    // Setter
-    void Write( uint16_t address, uint8_t value ) {
-        buffer[address] = value;
-    }
+    // Update loop
+    void Update() {}
 
-    // Writes a word
-    void Write16( uint16_t address, uint16_t value ) {
-        *(uint16_t*)( buffer + address ) = value;
-    }
-
-    // Raw data access
-    uint8_t *data() const {
-        return (uint8_t*)buffer;
+    // Draw loop
+    void Draw() {
+        textbox->Run();
     }
 
 private:
-    uint8_t buffer[BOB3K_SIZE];
-
+    MiDi16::Window *window;  // Managed by Micro16 class
+    MiDi16::Surface *screen; // Managed by Micro16 class
+    gui::TextBox *textbox;
 };
 
-
-
-
+#endif
 #endif

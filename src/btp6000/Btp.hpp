@@ -23,6 +23,25 @@
 #ifndef BTP_HPP
 #define BTP_HPP
 
+// #define BTP_DEBUG
+
+#define BTP_INTERRUPT_COUNT 16
+
+// Evil little macro to make repeat arithmetic statements easier
+// Args
+//     result = first argument and the result of the operation
+//     value  = second argument
+//     op     = operation (e.g. +, -, etc)
+#define BTP_MATH_OP( result, value, op ) {\
+    uint16_t v = value;\
+    uint32_t r = result op v;\
+    MathFlagSet( result, v, r );\
+    result = r; \
+}
+
+#include <fstream>
+
+#include "stdio.h"
 #include "stdint.h"
 
 #include "../bob3000/Bob.hpp"
@@ -30,15 +49,6 @@
 // The Better Than Pico 6000 namespace
 namespace btp {
     #include "Instructions.hpp"
-
-
-    // General purpose register
-    union Register {
-        uint16_t value;
-        struct {
-            uint8_t low, high;
-        };
-    };
 
     // Flags
     union Flags {
@@ -59,7 +69,7 @@ namespace btp {
         // General purpose registers
         //     Accumulator
         //     Base register
-        Register A, B;
+        uint16_t A, B;
 
         // Index registers
         //     X-index register
@@ -91,13 +101,19 @@ namespace btp {
 
         void Reset() {
             // Set everything to zero
-            A.value = B.value = X = Y = 
+            A = B = X = Y = 
             IP = SP = BP = SS = CS = DS = 
             flags.value = 0;
         }
 
         // Executes one instruction
         void Execute();
+
+        #ifdef BTP_DEBUG
+        // Dumps all the memory to a file
+        void DumpMemory( const char *outputFile );
+
+        #endif
 
     private:
         Bob3k *memory;
@@ -113,7 +129,7 @@ namespace btp {
         //     FF0:0FF = FFFF
         //     FFF:FFF = 0FEF
         uint16_t CalculateAddress( uint16_t segment, uint16_t offset ) {
-            return ( segment << 4 ) + ( offset & 0xFFF );
+            return ( segment << 4 ) + offset;
         }
 
         // Read a byte given a segment and an offset
@@ -156,8 +172,21 @@ namespace btp {
             flags.N = ( value >> 15 );
         }
 
+        // Sets frags for arithmetic
+        void MathFlagSet( uint16_t value0, uint16_t value1, uint32_t result ) {
+            flags.C = ( result > 0xFFFF );
+
+            // Borrowed from this abomination:
+            // https://github.com/bfirsh/jsnes/blob/master/src/cpu.js#L293
+            flags.V =
+                !( ( value0 ^ value1 ) & 0x8000 ) &&
+                ( ( value0 ^ result ) & 0x8000 );
+
+            GenericFlagSet( result );
+        }
+
         // Sets flags appropriately for a CMP instruction
-        void CompareFlagSet( uint16_t a, uint16_t b ) {
+        void Compare( uint16_t a, uint16_t b ) {
             flags.Z = a == b;
             flags.C = a > b;
             flags.N = a >= b;
@@ -284,6 +313,70 @@ namespace btp {
                 pointer + Fetch16(),
                 value
             );
+        }
+
+        // Pushes a byte onto the stack
+        void Push( uint8_t value ) {
+            Write( SS, --SP, value );
+        }
+
+        // Pushes a word onto the stack
+        void Push16( uint16_t value ) {
+            SP -= 2;
+            Write16( SS, SP, value );
+        }
+
+        // Pops a byte off the stack
+        uint8_t Pop() {
+            return Read( SS, SP++ );
+        }
+
+        // Pop a word off the stack
+        uint16_t Pop16() {
+            uint16_t value = Read16( SS, SP );
+            SP += 2;
+            return value;
+        }
+
+        // Control flow + jumps
+        // Adds a signed immediate byte to the instruction pointer
+        void Jump() {
+            IP += (int8_t)Fetch();
+        }
+
+        // Jumps if the given condition is true
+        void JumpCondition( uint8_t condition ) {
+            if ( condition )
+                Jump();
+            else
+                IP++; // Otherwise, skip past the argument
+        }
+
+        // Sets the instruction pointer to the given word
+        void LongJump() {
+            IP = Fetch16();
+        }
+
+        // Calls the appropriate interrupt
+        void Interrupt( uint8_t id ) {
+            if ( id < BTP_INTERRUPT_COUNT ) {
+                // Save current flags and IP
+                Push( flags.value );
+                Push16( CS );
+                Push16( IP );
+
+                // Set interrupt flag and jump
+                flags.I = 1;
+                CS = 0x0000;
+                IP = Read16( 0, id << 1 );
+            }
+        }
+
+        // Returns from an interrupt
+        void ReturnFromInterrupt() {
+            IP = Pop16();
+            CS = Pop16();
+            flags.value = Pop();
         }
     };
 

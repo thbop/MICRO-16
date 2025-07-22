@@ -3,3 +3,5 @@
 *.dll
 *.a
 *.o
+*.bin
+*.cart

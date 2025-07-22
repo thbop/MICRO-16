@@ -28,13 +28,13 @@
 #include <string>
 
 const char settingsHelpMessage[] =
-"Better Than Pico 6000 Assembler\n"
+"BetterThanPico 6000 Assembler\n"
 "Arguments:\n"
 "    -h - Help message\n"
 "    -o - Output file\n"
-"    default - Fnput file\n"
+"    default - Input file\n"
 "\n\nExample:\n"
-"    btp6kasm test.asm -o test.o\n";
+"    b6as test.asm -o test.o\n";
 
 // Parses and stores assembler settings from command line arguments
 class Settings {
@@ -45,7 +45,7 @@ public:
     Settings() {}
 
     // Parses the arguments
-    bool Parse( int argc, char **args );
+    bool Parse( int argc, char **argv );
 
 private:
     enum {
@@ -81,7 +81,7 @@ bool Settings::SetNextArgument( char *arg, int &nextArgument ) {
 }
 
 // Parses the arguments
-bool Settings::Parse( int argc, char **args ) {
+bool Settings::Parse( int argc, char **argv ) {
     if ( argc < 4 ) {
         std::cout << settingsHelpMessage;
         return false;
@@ -94,17 +94,17 @@ bool Settings::Parse( int argc, char **args ) {
         if ( wait > 0 ) {
             switch ( nextArgument ) {
                 case NEXT_ARG_INPUT:
-                    inputFile = args[i];
+                    inputFile = argv[i];
                     wait = 0;
                     break;
                 case NEXT_ARG_OUTPUT:
-                    outputFile = args[i];
+                    outputFile = argv[i];
                     wait = 0;
                     break;
             }
         }
         else {
-            if ( !SetNextArgument( args[i], nextArgument ) )
+            if ( !SetNextArgument( argv[i], nextArgument ) )
                 return false;
             wait++;
         }
