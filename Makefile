@@ -1,9 +1,12 @@
 CC = g++
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 CFLAGS = -g -Wall -fdiagnostics-color=always -Isrc -Iinclude
 LDFLAGS = -Llib -lSDL3
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 CFLAGS = -g -O2 -Wall -fdiagnostics-color=always -Isrc -Iinclude
