@@ -60,17 +60,56 @@ pineapple_sprite:
 
     ret
 
+; _check_wall_hit
+; Args
+;     B = x or y (lsb)
+; Returns A (hit = 1)
+_check_wall_hit:
+    tba
+    and 0xFF       ; A = x or y
+
+    cmp 120       ; if ( 0 > A || A > 120 )
+    jg .hit
+
+    lda 0
+    ret           ; No hit
+
+.hit:
+    lda 1
+    ret           ; Hit!
+
+
 main:
     lda 0x800
-    tass           ; Stack Segment = 0x800
+    tass           ; SS = 0x800
 
     call pineapple_sprite
 
+
+    lda 0x200
+    tads           ; DS = 0x200
+    lda 0x0000
+    sta [0]        ; pos = 0, 0
+    lda 0x0100
+    sta [2]        ; dx, dy = 1, 1
+loop:
+    lda [0]
+    add [2]        ; Update position
+
+    sta [0]
+
+    shr 8
+    tab
+    call _check_wall_hit
+    je no_hit_x
+    lda 0x0000
+    sta [2]
+
+no_hit_x:
+
+
     ldb 0x0000
-    ldx 0x1010
-    int 0x01
+    ldx [0]
+    int 0x01       ; Draw
 
-
-
-halt:
-    jmp halt
+    jmp loop

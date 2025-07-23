@@ -23,6 +23,8 @@
 #ifndef PGU_HPP
 #define PGU_HPP
 
+// #define PGU_DEBUG
+
 #include "stdint.h"
 
 #include "bob3000/Bob.hpp"

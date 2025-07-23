@@ -29,8 +29,9 @@ void BetterThanPico::Execute() {
     uint8_t instruction = Fetch();
     #ifdef BTP_DEBUG
     printf(
-        "INS: %02X CS:IP: %02X:%02X A: %02X B: %02X X: %02X Y: %02X\n",
-        instruction, CS, IP, A, B, X, Y
+        "INS %02X CS:IP %04X:%04X A %04X B %04X X %04X Y %04X SS %04X DS %04X"
+        "\n",
+        instruction, CS, IP, A, B, X, Y, SS, DS
     );
     #endif
 
@@ -49,12 +50,12 @@ void BetterThanPico::Execute() {
         case INS_STA_DPO: StorePointerImOffsetIm( DS, 0, 0, A );        break;
 
         // TA-X
-        case INS_TAB:     B = A;                                        break;
-        case INS_TAX:     X = A;                                        break;
-        case INS_TAY:     Y = A;                                        break;
-        case INS_TASS:    SS = A;                                       break;
-        case INS_TACS:    CS = A;                                       break;
-        case INS_TADS:    DS = A;                                       break;
+        case INS_TAB:     B = A;  GenericFlagSet( A );                  break;
+        case INS_TAX:     X = A;  GenericFlagSet( A );                  break;
+        case INS_TAY:     Y = A;  GenericFlagSet( A );                  break;
+        case INS_TASS:    SS = A; GenericFlagSet( A );                  break;
+        case INS_TACS:    CS = A; GenericFlagSet( A );                  break;
+        case INS_TADS:    DS = A; GenericFlagSet( A );                  break;
 
         // LDB
         case INS_LDB_IM:  B = LoadImmediate();                          break;
@@ -70,12 +71,12 @@ void BetterThanPico::Execute() {
         case INS_STB_DPO: StorePointerOffset( DS, X, Y, B );            break;
 
         // TB-X
-        case INS_TBA:     A = B;                                        break;
-        case INS_TBX:     X = B;                                        break;
-        case INS_TBY:     Y = B;                                        break;
-        case INS_TBSS:    SS = B;                                       break;
-        case INS_TBCS:    CS = B;                                       break;
-        case INS_TBDS:    DS = B;                                       break;
+        case INS_TBA:     A = B;  GenericFlagSet( B );                  break;
+        case INS_TBX:     X = B;  GenericFlagSet( B );                  break;
+        case INS_TBY:     Y = B;  GenericFlagSet( B );                  break;
+        case INS_TBSS:    SS = B; GenericFlagSet( B );                  break;
+        case INS_TBCS:    CS = B; GenericFlagSet( B );                  break;
+        case INS_TBDS:    DS = B; GenericFlagSet( B );                  break;
 
         // LDX
         case INS_LDX_IM:  X = LoadImmediate();                          break;
@@ -91,12 +92,12 @@ void BetterThanPico::Execute() {
         case INS_STX_DPO: StorePointerOffsetIm( DS, 0, Y, X );          break;
 
         // TX-X
-        case INS_TXA:     A = X;                                        break;
-        case INS_TXB:     B = X;                                        break;
-        case INS_TXY:     Y = X;                                        break;
-        case INS_TXSS:    SS = X;                                       break;
-        case INS_TXCS:    CS = X;                                       break;
-        case INS_TXDS:    DS = X;                                       break;
+        case INS_TXA:     A = X;  GenericFlagSet( X );                  break;
+        case INS_TXB:     B = X;  GenericFlagSet( X );                  break;
+        case INS_TXY:     Y = X;  GenericFlagSet( X );                  break;
+        case INS_TXSS:    SS = X; GenericFlagSet( X );                  break;
+        case INS_TXCS:    CS = X; GenericFlagSet( X );                  break;
+        case INS_TXDS:    DS = X; GenericFlagSet( X );                  break;
 
         // LDY
         case INS_LDY_IM:  Y = LoadImmediate();                          break;
@@ -112,13 +113,14 @@ void BetterThanPico::Execute() {
         case INS_STY_DPO: StorePointerImOffset( DS, X, 0, Y );          break;
 
         // TY-X
-        case INS_TYA:     A = Y;                                        break;
-        case INS_TYB:     B = Y;                                        break;
-        case INS_TYX:     X = Y;                                        break;
-        case INS_TYSS:    SS = Y;                                       break;
-        case INS_TYCS:    CS = Y;                                       break;
-        case INS_TYDS:    DS = Y;                                       break;
+        case INS_TYA:     A = Y;  GenericFlagSet( Y );                  break;
+        case INS_TYB:     B = Y;  GenericFlagSet( Y );                  break;
+        case INS_TYX:     X = Y;  GenericFlagSet( Y );                  break;
+        case INS_TYSS:    SS = Y; GenericFlagSet( Y );                  break;
+        case INS_TYCS:    CS = Y; GenericFlagSet( Y );                  break;
+        case INS_TYDS:    DS = Y; GenericFlagSet( Y );                  break;
 
+        // Stack operations
         case INS_PUSHA:   Push16( A );                                  break;
         case INS_POPA:    A = Pop16();                                  break;
         case INS_PUSHB:   Push16( B );                                  break;
@@ -131,6 +133,11 @@ void BetterThanPico::Execute() {
         case INS_LEAVE:   SP = BP; BP = Pop16();                        break;
         case INS_CALL:    Push16( IP ); IP = Fetch16();                 break;
         case INS_RET:     IP = Pop16() + 2; /* Call argument offset */  break;
+
+        // Misc transfers
+        case INS_TSSA:    A = SS; GenericFlagSet( A );                  break;
+        case INS_TCSA:    A = CS; GenericFlagSet( A );                  break;
+        case INS_TDSA:    A = DS; GenericFlagSet( A );                  break;
 
         // Control flow + jumps
         case INS_CMP:     Compare( A, B );                              break;

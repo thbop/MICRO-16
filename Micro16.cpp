@@ -34,9 +34,6 @@
 // Ignore development package
 // #define RUNTIME
 
-// #define BTP_DEBUG
-
-// #define PGU_DEBUG
 
 #include "MiDi16/MicroDisplay16.hpp"
 #include "bob3000/Bob.hpp"
