@@ -30,8 +30,13 @@
 #define WINDOW_RATIO      6
 #define WINDOW_RESOLUTION ( SCREEN_RESOLUTION * WINDOW_RATIO )
 
+// Switches
 // Ignore development package
 // #define RUNTIME
+
+// #define BTP_DEBUG
+
+// #define PGU_DEBUG
 
 #include "MiDi16/MicroDisplay16.hpp"
 #include "bob3000/Bob.hpp"
@@ -142,7 +147,8 @@ void Micro16::Update() {
 
 // Draw loop
 void Micro16::Draw() {
-    gpu->RenderSprite( 0, 0, 10, 10 );
+    // if ( window->IsKeyPressed( MiDi16::KEY_F11 ) )
+    gpu->Run();
 }
 
 // Main loop

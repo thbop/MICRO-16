@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -g -O2 -Wall -fdiagnostics-color=always -Isrc -Iinclude
+CFLAGS = -g -Wall -fdiagnostics-color=always -Isrc -Iinclude
 LDFLAGS = -Llib -lSDL3 -lSDL3_image
 
 

@@ -64,6 +64,12 @@ main:
     lda 0x800
     tass           ; Stack Segment = 0x800
 
+    call pineapple_sprite
+
+    ldb 0x0000
+    ldx 0x1010
+    int 0x01
+
 
 
 halt:

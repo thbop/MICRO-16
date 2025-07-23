@@ -23,22 +23,22 @@
 .org 0x0000
 
 ; 16 Interrupt vectors
-db panic       ; int 00h
-db test_fill   ; int 01h
-db panic       ; int 02h
-db panic       ; int 03h
-db panic       ; int 04h
-db panic       ; int 05h
-db panic       ; int 06h
-db panic       ; int 07h
-db panic       ; int 08h
-db panic       ; int 09h
-db panic       ; int 0Ah
-db panic       ; int 0Bh
-db panic       ; int 0Ch
-db panic       ; int 0Dh
-db panic       ; int 0Eh
-db panic       ; int 0Fh
+db panic           ; int 00h
+db draw_sprite     ; int 01h
+db panic           ; int 02h
+db panic           ; int 03h
+db panic           ; int 04h
+db panic           ; int 05h
+db panic           ; int 06h
+db panic           ; int 07h
+db panic           ; int 08h
+db panic           ; int 09h
+db panic           ; int 0Ah
+db panic           ; int 0Bh
+db panic           ; int 0Ch
+db panic           ; int 0Dh
+db panic           ; int 0Eh
+db panic           ; int 0Fh
 
 
 ; Takes no arguments, just halts the processor
@@ -46,37 +46,29 @@ panic:
     jmp panic
 
 
-; Fills the test sprite with the desired color
+; Draw sprite (01h)
+; Automatically sets the registers to draw the desired sprite
 ; Args
-;     B = color
-test_fill:
-    pusha      ; push a
+;     B = sprite ( 0b0000 pppp yyyy xxxx ) (p = palette, xy = sample coords)
+;     X = draw pos ( 0bxxxx xxxx yyyy yyyy )
+draw_sprite:
+    pusha          ; Push A
     tdsa
-    pusha      ; push ds
+    pusha          ; Push DS
 
-    lda 0x3C0
-    tads       ; Set ds to vram palette section
+    lda 0x03C3
+    tads           ; Set DS to PGU registers
 
     tba
-    sta [1]    ; Set the first non-background color to B
+    sta [0x04]     ; Set sprite
 
-.fill:
-    lda 0x300
-    tads
+    stx [0x06]     ; Set draw position
 
-    lda 0xFFFF ; Set the raw pixel data to reference this color
-    sta [0]
-    sta [2]
-    sta [4]
-    sta [6]
-    lda 0x0000
-    sta [8]
-    sta [10]
-    sta [12]
-    sta [14]
+    lda 0x01
+    sta [0x03]     ; Set control register to draw
 
-    ; Clean up and return from interrupt
+
     popa
-    tads       ; pop ds
-    popa       ; pop a
+    tads           ; Pop DS
+    popa           ; Pop A
     rti
